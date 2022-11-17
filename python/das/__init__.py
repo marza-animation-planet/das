@@ -337,29 +337,23 @@ def read_meta(path):
 
 
 def ascii_or_unicode(s, encoding=None):
-   if isinstance(s, str):
+   if isinstance(s, six.binary_type):
       try:
-         if six.PY2:
-            return s.decode("ascii")
-         return s
+         return s.decode("ascii")
       except Exception as e:
          if encoding is None:
             raise Exception("Input string must be 'ascii' encoded (%s)" % e)
          try:
-            if six.PY2:
-               return s.decode(encoding)
-            return s
+            return s.decode(encoding)
          except Exception as e:
             raise Exception("Input string must be 'ascii' or '%s' encoded (%s)" % (encoding, e))
    elif isinstance(s, six.text_type):
       try:
-         if six.PY2:
-            return s.encode("ascii")
-         return s
+         return s.encode("ascii")
       except:
          return s
    else:
-      raise Exception("'ascii_or_unicode' only works on string types (str, unicode)")
+      raise Exception("'ascii_or_unicode' only works on string types ({}, {})".format(six.binary_type, six.text_type))
 
 
 def decode(d, encoding):
@@ -947,7 +941,7 @@ def _get_sorted_keys(d):
             k = k.encode("ascii")
          except:
             raise Exception("Non-ascii keys are not supported!")
-      elif isinstance(k, str):
+      elif isinstance(k, six.binary_type):
          try:
             k.decode("ascii")
          except:
@@ -1007,10 +1001,9 @@ def pprint(d, stream=None, indent="  ", depth=0, inline=False, eof=True, encodin
             stream.write(",\n")
       stream.write("%s])" % tindent)
 
-   elif isinstance(d, str):
+   elif isinstance(d, six.binary_type):
       try:
-         if six.PY2:
-            d.decode("ascii")
+         d.decode("ascii")
       except Exception as e:
          if not encoding:
             raise Exception("Non-ascii string value found but no encoding provided (%s)." % e)

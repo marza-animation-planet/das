@@ -1253,7 +1253,7 @@ class DynamicDict(Dict):
 
 class Class(TypeValidator):
    def __init__(self, klass, default=None, description=None, editable=True, hidden=False, __properties__=None):
-      if not isinstance(klass, (str, six.text_type)):
+      if not isinstance(klass, (six.binary_type, six.text_type)):
          self.klass = self._validate_class(klass)
       else:
          self.klass = self._class(klass)
