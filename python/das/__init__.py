@@ -3,7 +3,7 @@ import re
 import sys
 import datetime
 
-__version__ = "0.13.1"
+__version__ = "1.0.0"
 __verbose__ = False
 try:
    __verbose__ = (int(os.environ.get("DAS_VERBOSE", "0")) != 0)
@@ -53,7 +53,7 @@ def has_schema(name):
 
 
 def get_schema(name_or_type):
-   if not isinstance(name_or_type, basestring):
+   if not isinstance(name_or_type, str):
       name_or_type = get_schema_type_name(name_or_type)
    name = name_or_type.split(".")[0]
    return SchemaTypesRegistry.instance.get_schema(name)
@@ -81,18 +81,18 @@ def add_schema_type(name, typ):
 # These 2 classes are meant to be used in conjonction to define_inline_type
 class one_of(object):
    def __init__(self, *types):
-      super(one_of, self).__init__()
+      super().__init__()
       self.types = types
 
 class none_or(one_of):
    def __init__(self, typ):
-      super(none_or, self).__init__(None, typ)
+      super().__init__(None, typ)
 
 def define_inline_type(typ):
    if typ is None:
       return schematypes.Empty()
    elif isinstance(typ, one_of):
-      otypes = map(define_inline_type, typ.types)
+      otypes = [define_inline_type(x) for x in typ.types]
       return schematypes.Or(*otypes)
    elif isinstance(typ, dict):
       n = len(typ)
@@ -100,11 +100,11 @@ def define_inline_type(typ):
          raise Exception("'dict' execpted to have length at least 1")
       stringkeys = True
       for k in typ.keys():
-         if not isinstance(k, basestring):
+         if not isinstance(k, str):
             stringkeys = False
             break
       if stringkeys:
-         items = dict(map(lambda x: (x[0], define_inline_type(x[1])), typ.items()))
+         items = {x[0]:define_inline_type(x[1]) for x in typ.items()}
          t = schematypes.Struct(**items)
          return t
       else:
@@ -121,14 +121,14 @@ def define_inline_type(typ):
          raise Exception("'set' execpted to have length 1")
       return schematypes.Set(define_inline_type(typ.copy().pop()))
    elif isinstance(typ, tuple):
-      tpl = map(lambda x: define_inline_type(x), typ)
+      tpl = [define_inline_type(x) for x in typ]
       return schematypes.Tuple(*tpl)
    # Other accepted values are only class
    if not type(typ) is type:
       raise Exception("'%s' is not a type" % typ)
-   elif issubclass(typ, basestring):
+   elif issubclass(typ, str):
       return schematypes.String()
-   elif typ in (int, long):
+   elif typ in (int,):
       return schematypes.Integer()
    elif typ in (float,):
       return schematypes.Real()
@@ -141,10 +141,10 @@ def define_inline_type(typ):
 def register_mixins(*mixins, **kwargs):
    schema_type = kwargs.get("schema_type", None)
    if __verbose__:
-      print("[das] Register mixins: %s%s" % (", ".join(map(lambda x: x.__module__ + "." + x.__name__, mixins)), "" if schema_type is None else " (%s)" % repr(schema_type)))
+      print("[das] Register mixins: %s%s" % (", ".join([x.__module__ + "." + x.__name__ for x in mixins]), "" if schema_type is None else " (%s)" % repr(schema_type)))
 
    if schema_type is not None:
-      if isinstance(schema_type, basestring):
+      if isinstance(schema_type, str):
          stn = schema_type
          try:
             schema_type = get_schema_type(schema_type)
@@ -185,7 +185,7 @@ def register_mixins(*mixins, **kwargs):
          lst.append(mixin)
          tmp[st] = lst
 
-      for k, v in tmp.iteritems():
+      for k, v in iter(tmp.items()):
          mixins = SchemaTypesRegistry.instance.get_schema_type_property(k, "mixins")
          if mixins is None:
             mixins = []
@@ -259,7 +259,7 @@ def conform(value, schema_type, fill=False):
 
 
 def validate(d, schema_type):
-   if not isinstance(schema_type, (basestring, TypeValidator)):
+   if not isinstance(schema_type, (str, TypeValidator)):
       raise Exception("Expected a string or a das.schematypes.TypeValidator instance as second argument")
    if isinstance(schema_type, TypeValidator):
       return schema_type.validate(d)
@@ -268,7 +268,7 @@ def validate(d, schema_type):
 
 
 def check(d, schema_type):
-   if not isinstance(schema_type, (basestring, TypeValidator)):
+   if not isinstance(schema_type, (str, TypeValidator)):
       raise Exception("Expected a string or a das.schematypes.TypeValidator instance as second argument")
    try:
       if isinstance(schema_type, TypeValidator):
@@ -281,7 +281,7 @@ def check(d, schema_type):
 
 
 def is_compatible(d, schema_type):
-   if not isinstance(schema_type, (basestring, TypeValidator)):
+   if not isinstance(schema_type, (str, TypeValidator)):
       raise Exception("Expected a string or a das.schematypes.TypeValidator instance as second argument") 
    try:
       if isinstance(schema_type, TypeValidator):
@@ -299,7 +299,7 @@ def _read_file(path, skip_content=False):
    content = ""
    md = {}
    if os.path.isfile(path):
-      with open(path, "rb") as f:
+      with open(path, "r") as f:
          for l in f.readlines():
             sl = l.strip()
             if sl.startswith("#"):
@@ -309,6 +309,16 @@ def _read_file(path, skip_content=False):
                      md[m.group(1)] = m.group(2)
             else:
                reading_content = True
+               # NOTE:
+               # This is to read a metadata that was create using python 2
+               # long datatype gives a "L" suffix
+               # so we need to remove it while reading
+               # and this should be remove when we no longer need python 2
+               if sys.version_info.major >= 3:
+                  re_suffix = re.compile(r"^\s*([^:]+):\s*(\d+)(?P<suffix>L)\s*[,]?$")
+                  m = re_suffix.match(sl[1:])
+                  if m:
+                     l = re.sub(m.group("suffix"), "", l)
                if skip_content:
                   break
                else:
@@ -323,33 +333,19 @@ def read_meta(path):
 
 def ascii_or_unicode(s, encoding=None):
    if isinstance(s, str):
-      try:
-         s.decode("ascii")
-         return s
-      except Exception, e:
-         if encoding is None:
-            raise Exception("Input string must be 'ascii' encoded (%s)" % e)
-         try:
-            return s.decode(encoding)
-         except Exception, e:
-            raise Exception("Input string must be 'ascii' or '%s' encoded (%s)" % (encoding, e))
-   elif isinstance(s, unicode):
-      try:
-         return s.encode("ascii")
-      except:
-         return s
+      return s
    else:
-      raise Exception("'ascii_or_unicode' only works on string types (str, unicode)")
+      raise Exception("'ascii_or_unicode' only works on string types (str)")
 
 
 def decode(d, encoding):
    if hasattr(d, "_decode") and callable(getattr(d, "_decode")):
       try:
          return d._decode(encoding)
-      except Exception, e:
+      except Exception as e:
          print_once("[das] '%s._decode' method call failed (%s)\n[das] Fallback to default decoding" % (d.__class__.__name__, e))
 
-   if isinstance(d, basestring):
+   if isinstance(d, str):
       return ascii_or_unicode(d, encoding=encoding)
    elif isinstance(d, tuple):
       return d.__class__([decode(x, encoding) for x in d])
@@ -361,17 +357,17 @@ def decode(d, encoding):
          for idx, val in enumerate(d):
             d[idx] = decode(val, encoding)
       elif isinstance(d, dict):
-         for k, v in d.iteritems():
+         for k, v in iter(d.items()):
             d[k] = decode(v, encoding)
       elif isinstance(d, Struct):
-         for k, v in d._dict.iteritems():
+         for k, v in iter(d._dict.items()):
             d[k] = decode(v, encoding)
       return d
 
 
 def read_string(s, schema_type=None, encoding=None, strict_schema=True, **funcs):
    if schema_type is not None:
-      if isinstance(schema_type, basestring):
+      if isinstance(schema_type, str):
          schname = schema_type
          sch = get_schema_type(schema_type)
       elif isinstance(schema_type, TypeValidator):
@@ -418,11 +414,11 @@ def read_string(s, schema_type=None, encoding=None, strict_schema=True, **funcs)
 #           2 backward compatible
 def is_version_compatible(reqver, curver):
    try:
-      cur = map(int, curver.split("."))
-      req = map(int, reqver.split("."))
-      if req[0] != cur[0]:
+      cur = [int(x) for x in curver.split(".")]
+      req = [int(x) for x in reqver.split(".")]
+      if req[0] > cur[0]:
          return -1
-      elif req[1] > cur[1]:
+      elif req[0] == cur[0] and req[1] > cur[1]:
          return 0
       else:
          return (1 if req[1] == cur[1] else 2)
@@ -483,7 +479,7 @@ def read(path, schema_type=None, ignore_meta=False, strict_schema=None, **funcs)
 
 class _Placeholder(object):
    def __init__(self, is_optional=False):
-      super(_Placeholder, self).__init__()
+      super().__init__()
       self.optional = is_optional
 
    def __repr__(self):
@@ -837,7 +833,7 @@ def read_csv(csv_path, delimiter="\t", newline="\n"):
       return []
 
    with open(csv_path, "r") as f:
-      lines = map(lambda x: re_strip.sub("", x), f.readlines())
+      lines = [re_strip.sub("", x) for x in f.readlines()]
 
    if len(lines) == 0:
       return []
@@ -876,14 +872,14 @@ def copy(d, deep=True):
    elif isinstance(d, dict):
       if deep:
          rv = d.__class__()
-         for k, v in d.iteritems():
+         for k, v in iter(d.items()):
             rv[k] = copy(v, deep=True)
       else:
          rv = d.copy()
    elif isinstance(d, Struct):
       if deep:
          rv = d.__class__()
-         for k, v in d._dict.iteritems():
+         for k, v in iter(d._dict.items()):
             rv[k] = copy(v, deep=True)
       else:
          rv = d._copy()
@@ -913,14 +909,9 @@ def _get_sorted_keys(d):
 
    for k in keys:
       # We assume string keys are 'ascii'
-      if isinstance(k, unicode):
+      if isinstance(k, str):
          try:
             k = k.encode("ascii")
-         except:
-            raise Exception("Non-ascii keys are not supported!")
-      elif isinstance(k, str):
-         try:
-            k.decode("ascii")
          except:
             raise Exception("Non-ascii keys are not supported!")
 
@@ -980,34 +971,7 @@ def pprint(d, stream=None, indent="  ", depth=0, inline=False, eof=True, encodin
 
    elif isinstance(d, str):
       try:
-         d.decode("ascii")
-      except Exception, e:
-         if not encoding:
-            raise Exception("Non-ascii string value found but no encoding provided (%s)." % e)
-         try:
-            stream.write(repr(d.decode(encoding)))
-         except Exception, e:
-            raise Exception("Non-ascii string value cannot be decoded to '%s' (%s)." % (encoding, e))
-      else:
-         # properly deal with multiline characters
-         # using repr here would solve the problem too but lead to less readable files
-         # -> line1\\nline1 -> eval -> line1\nline2
-         lines = d.split("\n")
-         nlines = len(lines)
-         if nlines > 1:
-            stream.write("'''")
-            for i in xrange(nlines):
-               stream.write(lines[i])
-               if i + 1 < nlines:
-                  stream.write("\n")
-            stream.write("'''")
-         else:
-            # stream.write("'%s'" % d)
-            stream.write(repr(d))
-
-   elif isinstance(d, unicode):
-      try:
-         s = d.encode("ascii")
+         s = d
       except:
          stream.write(repr(d))
       else:
@@ -1016,7 +980,7 @@ def pprint(d, stream=None, indent="  ", depth=0, inline=False, eof=True, encodin
          nlines = len(lines)
          if nlines > 1:
             stream.write("'''")
-            for i in xrange(nlines):
+            for i in range(nlines):
                stream.write(lines[i])
                if i + 1 < nlines:
                   stream.write("\n")
@@ -1035,7 +999,7 @@ def pprint(d, stream=None, indent="  ", depth=0, inline=False, eof=True, encodin
 
 class _CSVHeader(object):
    def __init__(self, name, column, fill=True):
-      super(_CSVHeader, self).__init__()
+      super().__init__()
       self.__column = column
       self.__name = name
       self.__data = []
@@ -1079,7 +1043,7 @@ class _CSVHeader(object):
 
 class _CSVValue(object):
    def __init__(self, value, header, valuetype=None, parent=None):
-      super(_CSVValue, self).__init__()
+      super().__init__()
       self.__children = []
       self.__header = header
       self.__parent = parent
@@ -1165,7 +1129,7 @@ def _dump_csv_data(k, d, valuetype, headers, parent=None, prefix=None):
       if not d:
          return
 
-      ckeys = map(lambda x: eval(repr(x)), _get_sorted_keys(d))
+      ckeys = [eval(repr(x)) for x in _get_sorted_keys(d)]
 
       for ck in ckeys:
          _dump_csv_data(k + "." + ck, d[ck], valuetype.get(ck), headers, parent=parent, prefix=prefix)
@@ -1174,7 +1138,8 @@ def _dump_csv_data(k, d, valuetype, headers, parent=None, prefix=None):
       if not d:
          return
 
-      ckeys = map(lambda x: eval(repr(x)), _get_sorted_keys(d))
+      ckeys = [eval(repr(x)) for x in _get_sorted_keys(d)]
+
       key_header = _get_header(prefix + k + "{key}", headers)
 
       vk = k + "{value}"
@@ -1220,7 +1185,7 @@ def write(d, path, indent="  ", encoding=None):
    if encoding is None and schema_type:
       encoding = "utf8"
 
-   with open(path, "wb") as f:
+   with open(path, "w") as f:
       if encoding is not None:
          f.write("# encoding: %s\n" % encoding)
       f.write("# version: %s\n" % __version__)
@@ -1276,17 +1241,17 @@ def write_csv(data, path, alias=None, encoding=None, delimiter="\t", newline="\n
       schem_val = _CSVValue(type_value, header_schema)
       header_schema.add_data(schem_val)
 
-      keys = map(lambda x: eval(repr(x)), _get_sorted_keys(d))
+      keys = [eval(repr(x)) for x in _get_sorted_keys(d)]
 
       for k in keys:
          _dump_csv_data(k, d[k], schema_type[k], headers, parent=schem_val, prefix=prefix)
 
-   with open(path, "wb") as f:
-      f.write(delimiter.join(map(lambda x: x.name(), headers)))
-      row_counts = max(map(lambda x: x.row_count(), headers))
+   with open(path, "w") as f:
+      f.write(delimiter.join([x.name() for x in headers]))
+      row_counts = max([x.row_count() for x in headers])
 
       column_counts = len(headers)
-      lines = map(lambda y: map(lambda x: "", range(column_counts)), range(row_counts))
+      lines = [[""] * column_counts for y in range(row_counts)]
 
       for header in headers:
          for hd in header.data():
@@ -1311,7 +1276,7 @@ def write_csv(data, path, alias=None, encoding=None, delimiter="\t", newline="\n
 
 
 def generate_empty_schema(path, name=None, version=None, author=None):
-   with open(path, "wb") as f:
+   with open(path, "w") as f:
       if not name:
          name = os.path.basename(path).split(".")[0]
       if not author:
@@ -1361,7 +1326,7 @@ def update_schema_metadata(path, name=None, version=None, author=None):
    if changed:
       md["date"] = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
-      with open(path, "wb") as f:
+      with open(path, "w") as f:
          for mdn in ("encoding", "name", "version", "das_minimum_version", "author", "date"):
             if not mdn in md:
                continue

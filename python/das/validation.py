@@ -7,19 +7,23 @@ import copy
 import das
 
 
+if sys.version_info.major >= 3:
+   def cmp(a, b):
+      return (a > b) - (a < b) 
+
 class UnknownSchemaError(Exception):
    def __init__(self, name):
-      super(UnknownSchemaError, self).__init__("%s is not a known schema or schema type" % repr(name))
+      super().__init__("%s is not a known schema or schema type" % repr(name))
 
 
 class SchemaVersionError(das.VersionError):
    def __init__(self, name, current_version=None, required_version=None):
-      super(SchemaVersionError, self).__init__("Schema %s" % repr(name), current_version, required_version)
+      super().__init__("Schema %s" % repr(name), current_version, required_version)
 
 
 class Schema(object):
    def __init__(self, location, path, dont_load=False):
-      super(Schema, self).__init__()
+      super().__init__()
       self.path = path
       self.location = location
       self.module = None
@@ -47,13 +51,15 @@ class Schema(object):
       dmv = md.get("das_minimum_version", None)
       if dmv is not None:
          try:
-            spl = map(int, dmv.split("."))
+            spl = [int(x) for x in dmv.split(".")]
             wmaj, wmin = spl[0], spl[1]
          except:
             raise Exception("'das_minimum_version' must follow MAJOR.MINOR format")
          else:
-            dmaj, dmin, _ = map(int, das.__version__.split("."))
-            if wmaj != dmaj or wmin > dmin:
+            dmaj, dmin, _ = [x for x in das.__version__.split(".")]
+            if int(wmaj) > int(dmaj):
+               raise das.VersionError("Library", current_version=das.__version__, required_version=dmv)
+            elif int(wmaj) == int(dmaj) and int(wmin) > int(dmin):
                raise das.VersionError("Library", current_version=das.__version__, required_version=dmv)
 
       pmp = os.path.splitext(self.path)[0] + ".py"
@@ -61,7 +67,7 @@ class Schema(object):
          try:
             modname = os.path.splitext(os.path.basename(self.path))[0]
             mod = imp.load_source("das.schema.%s" % modname, pmp)
-         except Exception, e:
+         except Exception as e:
             import traceback
             print("[das] Failed to load schema module '%s' (%s)" % (pmp, e))
             traceback.print_exc()
@@ -101,7 +107,7 @@ class Schema(object):
          das.schematypes.TypeValidator.CurrentSchema = self.name
          rv = das.read_string(content, encoding=md.get("encoding", None), **eval_locals)
          das.schematypes.TypeValidator.CurrentSchema = ""
-         for typename, validator in rv.iteritems():
+         for typename, validator in iter(rv.items()):
             k = "%s.%s" % (self.name, typename)
             if SchemaTypesRegistry.instance.has_schema_type(k):
                raise Exception("[das] Schema type '%s' already registered in another schema" % k)
@@ -110,8 +116,8 @@ class Schema(object):
 
          mt = md.get("master_types", None)
          if mt is not None:
-            mt = filter(lambda y: len(y) > 0, map(lambda x: x.strip(), mt.split(",")))
-            self.master_types = set(map(lambda x: "%s.%s" % (self.name, x), mt))
+            mt = [x.strip() for x in mt.split(",") if len(x.strip()) > 0]
+            self.master_types = set(["{}.{}".format(self.name, x) for x in mt])
 
          return True
 
@@ -128,9 +134,9 @@ class Schema(object):
    def list_types(self, sort=True, masters_only=False):
       rv = self.types.keys()
       if masters_only and self.master_types is not None:
-         rv = filter(lambda x: x in self.master_types, rv)
+         rv = [x for x in rv if x in self.master_types]
       if sort:
-         rv.sort()
+         rv = sorted(rv)
       return rv
 
    def is_master_type(self, name):
@@ -143,7 +149,7 @@ class Schema(object):
       return self.types.get(name, None)
 
    def get_type_name(self, typ):
-      for k, v in self.types.iteritems():
+      for k, v in iter(self.types.items()):
          if type(v) != type(typ):
             continue
          if v == typ:
@@ -153,7 +159,7 @@ class Schema(object):
 
 class SchemaLocation(object):
    def __init__(self, path=None, dont_load=False):
-      super(SchemaLocation, self).__init__()
+      super().__init__()
       if path:
          self.path = os.path.abspath(path).replace("\\", "/")
          if sys.path == "win32":
@@ -182,14 +188,14 @@ class SchemaLocation(object):
                self.schemas[schema.name] = schema
 
    def unload_schemas(self):
-      for _, schema in self.schemas.iteritems():
+      for _, schema in iter(self.schemas.items()):
          schema.unload()
       self.schemas = {}
 
    def list_schemas(self, sort=True):
       rv = self.schemas.keys()
       if sort:
-         rv.sort()
+         rv = sorted(rv)
       return rv
 
    def has_schema(self, name):
@@ -200,23 +206,23 @@ class SchemaLocation(object):
 
    def list_schema_types(self, schema=None, sort=True, masters_only=False):
       rv = set()
-      for n, s in self.schemas.iteritems():
+      for n, s in iter(self.schemas.items()):
          if schema is not None and n != schema:
             continue
          rv = rv.union(s.list_types(sort=False, masters_only=masters_only))
       rv = list(rv)
       if sort:
-         rv.sort()
+         rv = sorted(rv)
       return rv
 
    def has_schema_type(self, name):
-      for _, schema in self.schemas.iteritems():
+      for _, schema in iter(self.schemas.items()):
          if schema.has_type(name):
             return True
       return False
 
    def get_schema_type(self, name):
-      for sname, schema in self.schemas.iteritems():
+      for sname, schema in iter(self.schemas.items()):
          if name.startswith(sname+"."):
             rv = schema.get_type(name)
             if rv is not None:
@@ -224,7 +230,7 @@ class SchemaLocation(object):
       return None
 
    def get_schema_type_name(self, typ):
-      for _, schema in self.schemas.iteritems():
+      for _, schema in iter(self.schemas.items()):
          rv = schema.get_type_name(typ)
          if rv:
             return rv
@@ -246,7 +252,7 @@ class SchemaTypesRegistry(object):
    instance = None
 
    def __init__(self):
-      super(SchemaTypesRegistry, self).__init__()
+      super().__init__()
       if SchemaTypesRegistry.instance is not None:
          raise Exception("SchemaTypesRegistry must be globally unique")
       self.path = ""
@@ -367,11 +373,11 @@ class SchemaTypesRegistry(object):
 
       # re register dynamically added schema types
       if len(self.dyntypes):
-         for k, v in self.dyntypes.iteritems():
+         for k, v in iter(self.dyntypes.items()):
             try:
                if not self._add_schema_type(k, v):
                   print("Failed to re register dynamically added type '%s' (already registered)" % k)
-            except Exception, e:
+            except Exception as e:
                print("Failed to re register dynamically added type '%s' (%s)" % (k, e))
 
       self._rebuild_cache()
