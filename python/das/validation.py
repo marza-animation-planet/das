@@ -132,11 +132,11 @@ class Schema(object):
       self.master_types = None
 
    def list_types(self, sort=True, masters_only=False):
-      rv = self.types.keys()
+      rv = list(self.types.keys())
       if masters_only and self.master_types is not None:
          rv = [x for x in rv if x in self.master_types]
       if sort:
-         rv = sorted(rv)
+         rv.sort()
       return rv
 
    def is_master_type(self, name):
@@ -414,7 +414,7 @@ class SchemaTypesRegistry(object):
    def list_schema_types(self, schema=None, sort=True, masters_only=False):
       self.load_schemas()
       if schema is None:
-         rv = self.cache["name_to_type"].keys()
+         rv = list(self.cache["name_to_type"].keys())
       else:
          schema = self.cache["name_to_schema"].get(schema, None)
          if schema:
