@@ -406,7 +406,7 @@ class SchemaTypesRegistry(object):
 
    def list_schemas(self, sort=True):
       self.load_schemas()
-      rv = self.cache["name_to_schema"].keys()
+      rv = list(self.cache["name_to_schema"].keys())
       if sort:
          rv.sort()
       return rv
