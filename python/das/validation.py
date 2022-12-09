@@ -386,7 +386,7 @@ class SchemaTypesRegistry(object):
       self.load_schemas()
       rv = [x.path for x in self.locations]
       if sort:
-         rv = sorted(rv)
+         rv.sort()
       return rv
 
    def _samepath(self, path0, path1):
@@ -408,7 +408,7 @@ class SchemaTypesRegistry(object):
       self.load_schemas()
       rv = self.cache["name_to_schema"].keys()
       if sort:
-         rv = sorted(rv)
+         rv.sort()
       return rv
 
    def list_schema_types(self, schema=None, sort=True, masters_only=False):
@@ -422,7 +422,7 @@ class SchemaTypesRegistry(object):
          else:
             rv = []
       if sort:
-         rv = sorted(rv)
+         rv.sort()
       return rv
 
    def has_schema(self, name):
