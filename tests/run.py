@@ -1,9 +1,10 @@
 import os
 import re
-import imp
 import sys
 import glob
 import unittest
+import importlib.util
+import importlib.machinery
 
 
 if __name__ == "__main__":
@@ -42,14 +43,17 @@ if __name__ == "__main__":
    runall = (len(runtests) + len(runfuncs) == 0)
 
    # Get list of available tests
-   tests = filter(lambda x: os.path.isdir(x) and re.match(r"^test\d{3}$", os.path.basename(x)) and os.path.isfile(x+"/__init__.py"), glob.glob("./*"))
+   tests = [x for x in glob.glob("./*") if os.path.isdir(x) and re.match(r"^test\d{3}$", os.path.basename(x)) and os.path.isfile(x+"/__init__.py")]
    for test in sorted(tests):
       name = os.path.basename(test)
 
       if name in runfuncs:
          # specific functions
          try:
-            mod = imp.load_source(name, test+"/__init__.py")
+            file_loader = importlib.machinery.SourceFileLoader(name, test+"/__init__.py")
+            spec = importlib.util.spec_from_loader(loader.name, loader)
+            mod = importlib.util.module_from_spec(spec)
+            file_loader.exec_module(mod)
             for fn in runfuncs[name]:
                print("Add '%s.%s' to test suite..." % (name, fn))
             names = ["TestCase.%s" % x for x in runfuncs[name]]
@@ -59,7 +63,10 @@ if __name__ == "__main__":
       elif runall or (runtests and name in runtests):
          # whole tests
          try:
-            mod = imp.load_source(name, test+"/__init__.py")
+            file_loader = importlib.machinery.SourceFileLoader(name, test+"/__init__.py")
+            spec = importlib.util.spec_from_loader(loader.name, loader)
+            mod = importlib.util.module_from_spec(spec)
+            file_loader.exec_module(mod)
             print("Add '%s' to test suite..." % name)
             suite.addTests(loader.loadTestsFromTestCase(mod.TestCase))
          except Exception as e:

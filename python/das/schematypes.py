@@ -638,7 +638,7 @@ class Tuple(TypeValidator):
 
    def _decode(self, encoding):
       super()._decode(encoding)
-      self.types = tuple(map(lambda x: das.decode(x, encoding), self.types))
+      self.types = tuple([das.decode(x, encoding) for x in self.types])
       return self
 
    def is_type_compatible(self, st, key=None, index=None):
@@ -1409,7 +1409,7 @@ class Or(TypeValidator):
 
    def _decode(self, encoding):
       super()._decode(encoding)
-      self.types = tuple(map(lambda x: das.decode(x, encoding), self.types))
+      self.types = tuple([das.decode(x, encoding) for x in self.types])
       return self
 
    def make_default(self):
@@ -1454,7 +1454,7 @@ class Or(TypeValidator):
       raise ValidationError(emsg)
 
    def __repr__(self):
-      s = "Or(%s" % ", ".join(map(str, self.types))
+      s = "Or(%s" % ", ".join([str(x) for x in self.types])
       if self.default is not None:
          s += ", default=%s" % repr(self.default)
       if self.description:
