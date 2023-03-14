@@ -1,4 +1,5 @@
 import re
+import os
 import das
 import imp
 
@@ -175,6 +176,15 @@ class Integer(TypeValidator):
          self.enumvals = set(self.enum.values())
 
    def _validate_self(self, value):
+      def _isInt(v):
+         try:
+            # int(v, 10) # python3
+            long(v, 10)
+         except ValueError:
+            return False
+         else:
+            return True
+
       if self.enum is not None:
          if isinstance(value, basestring):
             v = das.ascii_or_unicode(value)
@@ -186,7 +196,13 @@ class Integer(TypeValidator):
             if not value in self.enumvals:
                raise ValidationError("Expected a enumeration value (string or integer) in %s, got %s" % (self.enum, value))
       if not isinstance(value, (int, long)):
-         raise ValidationError("Expected an integer value, got %s" % type(value).__name__)
+         if isinstance(value, str):
+            if not _isInt(os.environ[value]):
+               raise ValidationError("Could not cast to an integer value, got %s" % type(value).__name__)
+            else:
+               value = os.environ[value]
+         else:
+            raise ValidationError("Expected an integer value, got %s" % type(value).__name__)
       if self.enum is None:
          if self.min is not None and value < self.min:
             raise ValidationError("Integer value out of range, %d < %d" % (value, self.min))
