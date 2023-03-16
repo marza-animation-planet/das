@@ -197,10 +197,13 @@ class Integer(TypeValidator):
                raise ValidationError("Expected a enumeration value (string or integer) in %s, got %s" % (self.enum, value))
       if not isinstance(value, (int, long)):
          if isinstance(value, str):
-            if not _isInt(os.environ[value]):
+            v = os.environ.get(value, None)
+            if v is None:
+               raise ValidationError("Do not exist environment value, got '%s'" % value)
+            if not _isInt(v):
                raise ValidationError("Could not cast to an integer value, got %s" % type(value).__name__)
             else:
-               value = os.environ[value]
+               value = long(os.environ[value])
          else:
             raise ValidationError("Expected an integer value, got %s" % type(value).__name__)
       if self.enum is None:
