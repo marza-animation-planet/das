@@ -3,4 +3,5 @@
 	url = git@github.com:marza-animation-planet/excons.git
 [submodule "Qute"]
 	path = Qute
-	url = git://github.com/gatgui/Qt.py
+	url = git@github.com:marza-animation-planet/Qt.py
+	branch = develop
