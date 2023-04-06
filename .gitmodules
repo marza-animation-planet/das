@@ -4,4 +4,4 @@
 [submodule "Qute"]
 	path = Qute
 	url = git@github.com:marza-animation-planet/Qt.py
-	branch = FB-update
+	branch = develop
