@@ -1,4 +1,5 @@
 import sys
+from typing import Any
 import das
 import traceback
 
@@ -56,7 +57,7 @@ class TypeBase(object):
       return dst
 
    @classmethod
-   def ValidateGlobally(klass, inst):
+   def ValidateGlobally(klass, inst: Any) -> Any:
       if isinstance(inst, klass):
          inst._gvalidate()
       return inst
