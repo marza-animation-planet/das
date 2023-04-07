@@ -1,4 +1,5 @@
 import re
+from typing import Any, Optional, Dict
 import das
 import imp
 
@@ -9,9 +10,10 @@ class ValidationError(Exception):
 
 
 class TypeValidator(object):
-   CurrentSchema = ""
+   CurrentSchema: str = ""
+   default: Any
 
-   def __init__(self, default=None, description=None, editable=True, hidden=False, __properties__=None, **kwargs):
+   def __init__(self, default: Any=None, description=None, editable=True, hidden=False, __properties__=None, **kwargs):
       super().__init__(**kwargs)
       self.default_validated = False
       self.default = default
@@ -54,7 +56,7 @@ class TypeValidator(object):
    def _validate_self(self, value):
       raise ValidationError("'_validate_self' method is not implemented")
 
-   def _validate(self, value, key=None, index=None):
+   def _validate(self, value: Any, key=None, index=None) -> Any:
       raise ValidationError("'_validate' method is not implemented")
 
    def _decode(self, encoding):
@@ -77,7 +79,7 @@ class TypeValidator(object):
    def is_type_compatible(self, st, key=None, index=None):
       return isinstance(st.real_type(), self.__class__)
 
-   def validate(self, value, key=None, index=None):
+   def validate(self, value: Any, key=None, index=None) -> Any:
       mixins = (None if not das.has_bound_mixins(value) else das.get_bound_mixins(value))
       rv = self._validate(value, key=key, index=index)
       if mixins is not None:
@@ -127,7 +129,7 @@ class Boolean(TypeValidator):
    def __init__(self, default=None, description=None, editable=True, hidden=False, __properties__=None):
       super().__init__(default=(False if default is None else default), description=description, editable=editable, hidden=hidden, __properties__=__properties__)
 
-   def _validate_self(self, value):
+   def _validate_self(self, value: Any) -> bool:
       if not isinstance(value, bool):
          if isinstance(value, str):
             if self.TrueExp.match(value):
@@ -140,7 +142,7 @@ class Boolean(TypeValidator):
             raise ValidationError("Expected a boolean or string value, got %s" % type(value).__name__)
       return value
 
-   def _validate(self, value, key=None, index=None):
+   def _validate(self, value: Any, key=None, index=None) -> bool:
       return self._validate_self(value)
 
    # No need to override is_type_compatible here, a Boolean matches another Boolean only
@@ -1033,7 +1035,7 @@ class Struct(TypeValidator, dict):
 
       return self.validate(rv)
 
-   def partial_make(self, args):
+   def partial_make(self, args) -> Dict[str, Any]:
       if not isinstance(args, dict):
          raise ValidationError("Expected a dict value, got %s" % type(args).__name__)
 
