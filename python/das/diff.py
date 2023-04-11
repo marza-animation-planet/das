@@ -27,11 +27,28 @@ class Diff:
             return results
 
     type_comparison_result: TypeComparisonResult
-    types_changed: List[DiffPath]
-    values_changed: List[DiffPath]
-    items_added: List[DiffPath]
-    items_removed: List[DiffPath]
-    affected_paths: List[DiffPath]
+    _deepdiff: deepdiff.DeepDiff
+
+    @property
+    def types_changed(self):
+        return Diff.DiffPath.list_from_deepdiff(self._deepdiff.get('type_changes')),
+
+    @property
+    def values_changed(self):
+        return Diff.DiffPath.list_from_deepdiff(self._deepdiff.get('values_changed')),
+
+    @property
+    def items_added(self):
+        return Diff.DiffPath.list_from_deepdiff(self._deepdiff.get('dictionary_item_added')),
+
+    @property
+    def items_removed(self):
+        return Diff.DiffPath.list_from_deepdiff(self._deepdiff.get('dictionary_item_removed')),
+
+    @property
+    def affected_paths(self):
+        return Diff.DiffPath.list_from_deepdiff(self._deepdiff.affected_paths)
+
 
 
 def compare_types(base: Any, other: Any) -> TypeComparisonResult:
@@ -55,17 +72,4 @@ def diff(base: 'Struct', other: 'Struct', diff_different_types=False, diff_subcl
         return type_comparison, None
     difference = deepdiff.DeepDiff(dict(base), dict(other), view='tree')
 
-    return Diff(
-        type_comparison_result=type_comparison,
-        types_changed=Diff.DiffPath.list_from_deepdiff(difference.get('type_changes')),
-        values_changed=Diff.DiffPath.list_from_deepdiff(difference.get('values_changed')),
-        items_added=Diff.DiffPath.list_from_deepdiff(difference.get('dictionary_item_added')),
-        items_removed=Diff.DiffPath.list_from_deepdiff(difference.get('dictionary_item_removed')),
-        affected_paths=Diff.DiffPath.list_from_deepdiff(difference.affected_paths)
-    )
-
-def delta(base: 'Struct', other: 'Struct', diff_different_types=False, diff_subclasses=True):
-    pass
-
-def get_unaffected(base, diff):
-    pass
+    return Diff(_deepdiff=difference, type_comparison_result=type_comparison)
