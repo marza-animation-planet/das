@@ -50,7 +50,6 @@ class Diff:
         return Diff.DiffPath.list_from_deepdiff(self._deepdiff.affected_paths)
 
 
-
 def compare_types(base: Any, other: Any) -> TypeComparisonResult:
     base_type = type(base)
     other_type = type(other)
