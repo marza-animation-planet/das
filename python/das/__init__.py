@@ -2,7 +2,8 @@ import os
 import re
 import sys
 import datetime
-from typing import Any, List, Union
+import typing
+from typing import Any, List, Union, Optional
 
 __version__ = "1.0.0"
 __verbose__ = False
@@ -333,14 +334,14 @@ def read_meta(path):
    return _read_file(path, skip_content=True)[0]
 
 
-def ascii_or_unicode(s, encoding=None):
+def ascii_or_unicode(s: str, encoding: Optional[str]=None) -> str:
    if isinstance(s, str):
       return s
    else:
       raise Exception("'ascii_or_unicode' only works on string types (str)")
 
 
-def decode(d, encoding):
+def decode(d: Union[str, Tuple, typing.Set, List, typing.Dict, Struct], encoding: str):
    if hasattr(d, "_decode") and callable(getattr(d, "_decode")):
       try:
          return d._decode(encoding)
@@ -370,7 +371,7 @@ def decode(d, encoding):
 def read_string(
    s: str, 
    schema_type: Union[str, TypeValidator, None] = None, 
-   encoding: bool = None, 
+   encoding: Optional[str] = None, 
    strict_schema: bool = True, 
    **funcs
 ) -> Any:  # FIXME is it always Dict[str, Struct]?

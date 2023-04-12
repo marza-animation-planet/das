@@ -5,7 +5,7 @@ import imp
 import glob
 import copy
 import das
-from typing import Any, Dict, List, Optional, Set, TypedDict, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING
 
 
 if sys.version_info.major >= 3:
@@ -254,15 +254,9 @@ class SchemaLocation(object):
 
 
 class SchemaTypesRegistry(object):
-   class Cache(TypedDict):
-      name_to_schema: Dict[str, Schema]
-      name_to_type: Dict[str, das.schematypes.Struct]
-      type_to_name: Dict[das.schematypes.Struct, str]
-
    instance = None
 
    locations: Set[SchemaLocation]
-   cache: Cache
 
    def __init__(self):
       super().__init__()
