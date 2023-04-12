@@ -2,7 +2,6 @@ from dataclasses import dataclass
 import deepdiff
 from enum import Enum
 from typing import Any, List, TYPE_CHECKING
-from functools import cached_property
 
 if TYPE_CHECKING:
     from .types import Struct
@@ -30,23 +29,23 @@ class Diff:
     type_comparison_result: TypeComparisonResult
     _deepdiff: deepdiff.DeepDiff
 
-    @cached_property
+    @property
     def types_changed(self):
         return Diff.DiffPath.list_from_deepdiff(self._deepdiff.get('type_changes')),
 
-    @cached_property
+    @property
     def values_changed(self):
         return Diff.DiffPath.list_from_deepdiff(self._deepdiff.get('values_changed')),
 
-    @cached_property
+    @property
     def items_added(self):
         return Diff.DiffPath.list_from_deepdiff(self._deepdiff.get('dictionary_item_added')),
 
-    @cached_property
+    @property
     def items_removed(self):
         return Diff.DiffPath.list_from_deepdiff(self._deepdiff.get('dictionary_item_removed')),
 
-    @cached_property
+    @property
     def affected_paths(self):
         return Diff.DiffPath.list_from_deepdiff(self._deepdiff.affected_paths)
 
