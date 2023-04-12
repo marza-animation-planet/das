@@ -5,6 +5,7 @@ import imp
 import glob
 import copy
 import das
+from typing import Any, Dict, List, Optional, Set, TypedDict, TYPE_CHECKING
 
 
 if sys.version_info.major >= 3:
@@ -22,6 +23,8 @@ class SchemaVersionError(das.VersionError):
 
 
 class Schema(object):
+   types: Dict[str, das.schematypes.Struct]
+
    def __init__(self, location, path, dont_load=False):
       super().__init__()
       self.path = path
@@ -40,7 +43,7 @@ class Schema(object):
       if not dont_load:
          self.load()
 
-   def load(self):
+   def load(self) -> bool:
       if not self.path:
          return False
 
@@ -105,7 +108,7 @@ class Schema(object):
                das.print_once("[das] Warning: Schema '%s' defined in %s is unversioned" % (self.name, self.path))
 
          das.schematypes.TypeValidator.CurrentSchema = self.name
-         rv = das.read_string(content, encoding=md.get("encoding", None), **eval_locals)
+         rv: Dict[str, das.schematypes.Struct] = das.read_string(content, encoding=md.get("encoding", None), **eval_locals)
          das.schematypes.TypeValidator.CurrentSchema = ""
          for typename, validator in iter(rv.items()):
             k = "%s.%s" % (self.name, typename)
@@ -131,7 +134,7 @@ class Schema(object):
       self.types = {}
       self.master_types = None
 
-   def list_types(self, sort=True, masters_only=False):
+   def list_types(self, sort: bool = True, masters_only: bool = False) -> List[str]:
       rv = list(self.types.keys())
       if masters_only and self.master_types is not None:
          rv = [x for x in rv if x in self.master_types]
@@ -145,7 +148,7 @@ class Schema(object):
    def has_type(self, name):
       return (name in self.types)
 
-   def get_type(self, name):
+   def get_type(self, name: str) -> Optional[das.schematypes.Struct]:
       return self.types.get(name, None)
 
    def get_type_name(self, typ):
@@ -158,6 +161,8 @@ class Schema(object):
 
 
 class SchemaLocation(object):
+   schemas: Dict[str, Schema]
+
    def __init__(self, path=None, dont_load=False):
       super().__init__()
       if path:
@@ -192,7 +197,7 @@ class SchemaLocation(object):
          schema.unload()
       self.schemas = {}
 
-   def list_schemas(self, sort=True):
+   def list_schemas(self, sort: bool = True) -> List[str]:
       rv = self.schemas.keys()
       if sort:
          rv = sorted(rv)
@@ -249,7 +254,15 @@ class SchemaLocation(object):
 
 
 class SchemaTypesRegistry(object):
+   class Cache(TypedDict):
+      name_to_schema: Dict[str, Schema]
+      name_to_type: Dict[str, das.schematypes.Struct]
+      type_to_name: Dict[das.schematypes.Struct, str]
+
    instance = None
+
+   locations: Set[SchemaLocation]
+   cache: Cache
 
    def __init__(self):
       super().__init__()

@@ -2,6 +2,8 @@ import os
 import re
 import sys
 import datetime
+import typing
+from typing import Any, List, Union, Optional
 
 __version__ = "1.0.0"
 __verbose__ = False
@@ -331,14 +333,14 @@ def read_meta(path):
    return _read_file(path, skip_content=True)[0]
 
 
-def ascii_or_unicode(s, encoding=None):
+def ascii_or_unicode(s: str, encoding: Optional[str]=None) -> str:
    if isinstance(s, str):
       return s
    else:
       raise Exception("'ascii_or_unicode' only works on string types (str)")
 
 
-def decode(d, encoding):
+def decode(d: Union[str, Tuple, typing.Set, List, typing.Dict, Struct], encoding: str):
    if hasattr(d, "_decode") and callable(getattr(d, "_decode")):
       try:
          return d._decode(encoding)
@@ -365,7 +367,13 @@ def decode(d, encoding):
       return d
 
 
-def read_string(s, schema_type=None, encoding=None, strict_schema=True, **funcs):
+def read_string(
+   s: str, 
+   schema_type: Union[str, TypeValidator, None] = None, 
+   encoding: Optional[str] = None, 
+   strict_schema: bool = True, 
+   **funcs
+) -> Any:  # FIXME is it always Dict[str, Struct]?
    if schema_type is not None:
       if isinstance(schema_type, str):
          schname = schema_type
@@ -731,7 +739,7 @@ def _read_csv(value, row, header, headers, schematype, data, csv):
    parent[key] = value
 
 
-def read_csv_table(csv_table):
+def read_csv_table(csv_table: List[List[str]]) -> List: # FIXME?
    data_table = csv_table[:]
 
    headers = data_table.pop(0)
@@ -823,7 +831,7 @@ def read_csv_table(csv_table):
    return results
 
 
-def read_csv(csv_path, delimiter="\t", newline="\n"):
+def read_csv(csv_path: str, delimiter: str = "\t", newline: str = "\n") -> List:  # FIXME?
    # re_metadata = re.compile("^[<](.*)[>]$")
    # re_alias = re.compile("[ ]+as[ ]+([^ ]+)[ ]*$")
    re_strip = re.compile(newline + "$")

@@ -47,11 +47,12 @@ if __name__ == "__main__":
    for test in sorted(tests):
       name = os.path.basename(test)
 
+      test_path = os.path.join(test, '__init__.py')
       if name in runfuncs:
          # specific functions
          try:
-            file_loader = importlib.machinery.SourceFileLoader(name, test+"/__init__.py")
-            spec = importlib.util.spec_from_loader(loader.name, loader)
+            file_loader = importlib.machinery.SourceFileLoader(name, test_path)
+            spec = importlib.util.spec_from_loader(name, loader)
             mod = importlib.util.module_from_spec(spec)
             file_loader.exec_module(mod)
             for fn in runfuncs[name]:
@@ -63,9 +64,10 @@ if __name__ == "__main__":
       elif runall or (runtests and name in runtests):
          # whole tests
          try:
-            file_loader = importlib.machinery.SourceFileLoader(name, test+"/__init__.py")
-            spec = importlib.util.spec_from_loader(loader.name, loader)
+            file_loader = importlib.machinery.SourceFileLoader(name, test_path)
+            spec = importlib.util.spec_from_loader(name, loader)
             mod = importlib.util.module_from_spec(spec)
+            mod.__file__ = test_path
             file_loader.exec_module(mod)
             print("Add '%s' to test suite..." % name)
             suite.addTests(loader.loadTestsFromTestCase(mod.TestCase))
