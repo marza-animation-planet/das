@@ -34,6 +34,7 @@ from .mixin import (SchemaTypeError,
                     bind,
                     has_bound_mixins,
                     get_bound_mixins)
+from .diff import diff, get_intersection, Diff, TypeComparisonResult
 from . import schema
 from . import schematypes
 from . import types
