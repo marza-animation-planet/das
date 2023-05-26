@@ -112,7 +112,7 @@ def _extract_path(base, intersection, path):
 def get_intersection(base, other: Optional[Struct] = None, diff: Optional[Diff] = None, preserve_list: bool = False):
     if diff is None:
         if other is None:
-            raise ArgumentError('other or diff is required')
+            raise ArgumentError("other or diff", "required")
         diff = diff(base, other)
 
     unaffected_paths = diff.unaffected_paths

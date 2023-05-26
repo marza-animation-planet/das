@@ -113,7 +113,7 @@ def define_inline_type(typ):
       else:
          if n != 1:
             raise Exception("'dict' execpted to have length 1 or only string keys")
-         kt, vt = typ.items()[0]
+         kt, vt = next(iter(typ.items()))  # First element
          return schematypes.Dict(ktype=define_inline_type(kt), vtype=define_inline_type(vt))
    elif isinstance(typ, list):
       if len(typ) != 1:

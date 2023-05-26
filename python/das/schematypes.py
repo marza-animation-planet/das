@@ -1,5 +1,5 @@
 import re
-from typing import Any, Optional, Dict
+from typing import Any, Dict as TypeDict
 import das
 import imp
 
@@ -324,7 +324,7 @@ class String(TypeValidator):
       if choices is None and matches is not None:
          if isinstance(matches, str):
             self.matches = re.compile(matches)
-         elif isinstance(matches, re._pattern_type):
+         elif isinstance(matches, re.Pattern):
             self.matches = matches
          else:
             raise Exception("String schema type 'matches' option must be a string or a compiled regular expression")
@@ -1035,7 +1035,7 @@ class Struct(TypeValidator, dict):
 
       return self.validate(rv)
 
-   def partial_make(self, args) -> Dict[str, Any]:
+   def partial_make(self, args) -> TypeDict[str, Any]:
       if not isinstance(args, dict):
          raise ValidationError("Expected a dict value, got %s" % type(args).__name__)
 
