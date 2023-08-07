@@ -9,7 +9,7 @@ class SomeTypeValidator(das.Mixin):
       super(SomeTypeValidator, self).__init__(*args, **kwargs)
 
    def _validate_globally(self):
-      for k, v in self.value_pairs.iteritems():
+      for k, v in iter(self.value_pairs.items()):
          if not k in self.valid_keys:
             raise Exception("Invalid key '%s'" % k)
          if not self.accepted_values.boolean and isinstance(v, bool):

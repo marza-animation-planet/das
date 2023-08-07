@@ -41,7 +41,7 @@ class Test(das.Mixin):
          return False
 
    def list_margins(self):
-      return self.resolution.margins.keys()
+      return list(self.resolution.margins.keys())
 
    def get_margin(self, name):
       return self.resolution.margins.get(name, (1.0, 1.0))
@@ -90,7 +90,7 @@ class Test(das.Mixin):
 
       # Validate margin names
       if self.resolution.defaultMargin and not self.resolution.defaultMargin in self.resolution.margins:
-         raise Exception("Invalid default margin '%s'. Must be one of %s" % (self.resolution.defaultMargin, ", ".join(map(repr, self.resolution.margins.keys()))))
+         raise Exception("Invalid default margin '%s'. Must be one of %s" % (self.resolution.defaultMargin, ", ".join([repr(x) for x in self.resolution.margins])))
 
 
 das.register_mixins(Test)
