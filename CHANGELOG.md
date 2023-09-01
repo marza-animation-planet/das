@@ -1,3 +1,10 @@
+**1.0.0**
+- Update to python 3 and drop support for python 2 (This update is not backward compatible)
+- Minimum requirement is python 3.7.x
+- Fixed some tests to run on python 3.7+
+- Added debug vscode configurations and scripts in /scripts
+- Added das.diff and das.get_intersection
+
 **0.13.1**
 - Echo more useful error message when failing to instanciate a Class schema type object
 - Fix list size from csv to match actually used
