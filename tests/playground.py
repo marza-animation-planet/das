@@ -5,7 +5,7 @@ import glob
 
 thisdir = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(os.path.join(thisdir, "..", "python"))
-dirs = map(lambda y: thisdir + "/" + y, filter(lambda x: re.match(r"test\d+", x), os.listdir(thisdir)))
+dirs = [thisdir + "/" + x for x in os.listdir(thisdir) if re.match(r"test\d+", x)]
 os.environ["DAS_SCHEMA_PATH"] = os.pathsep.join(dirs)
 
 import das # pylint: disable=import-error
@@ -51,7 +51,7 @@ def test_mixin1():
          super(ClipSource, self).__init__(*args, **kwargs)
 
       def set_media(self, path):
-         _, ext = map(lambda x: x.lower(), os.path.splitext(path))
+         _, ext = [x.lower() for x in os.path.splitext(path)]
          if ext == ".fbx":
             print("Get range from FBX file")
          elif ext == ".abc":
@@ -135,14 +135,14 @@ def test_mixin2():
    data = das.make_default("timeline.ClipSource")
    try:
       data.pprint()
-   except Exception, e:
+   except Exception as e:
       print(str(e))
    das.mixin.bind([Fn, Fn2], data)
    das.mixin.bind(Fn2, data)
    das.mixin.bind(Fn, data)
    try:
       das.mixin.bind(Fn3, data)
-   except Exception, e:
+   except Exception as e:
       print(str(e))
    data.pprint()
    c = data._copy()
@@ -151,7 +151,7 @@ def test_mixin2():
    c.echo()
    try:
       c.pprint()
-   except Exception, e:
+   except Exception as e:
       print(str(e))
 
 

@@ -11,7 +11,7 @@ try:
    from Qt import QtGui # pylint: disable=import-error
    from Qt import QtWidgets # pylint: disable=import-error
    from Qt import QtCompat # pylint: disable=import-error
-except Exception, e:
+except Exception as e:
    print("Failed to import Qt (%s)" % e)
    NoUI = True
 
@@ -27,7 +27,7 @@ if not NoUI:
 
    class FieldFilter(object):
       def __init__(self, name):
-         super(FieldFilter, self).__init__()
+         super().__init__()
          self.name = name
 
       def copy(self):
@@ -38,7 +38,7 @@ if not NoUI:
 
    class GlobFilter(FieldFilter):
       def __init__(self, name, pattern, invert=False):
-         super(GlobFilter, self).__init__(name)
+         super().__init__(name)
          self.pattern = pattern
          self.invert = invert
 
@@ -51,7 +51,7 @@ if not NoUI:
 
    class RegexFilter(FieldFilter):
       def __init__(self, name, pattern, partial=False, invert=False):
-         super(RegexFilter, self).__init__(name)
+         super().__init__(name)
          self.regex = re.compile(pattern)
          self.partial = partial
          self.invert = invert
@@ -68,8 +68,8 @@ if not NoUI:
 
    class ListFilter(FieldFilter):
       def __init__(self, name, values, partial=False, invert=False):
-         super(ListFilter, self).__init__(name)
-         self.values = set(map(str, values))
+         super().__init__(name)
+         self.values = set([str(x) for x in values])
          self.partial = partial
          self.invert = invert
 
@@ -92,7 +92,7 @@ if not NoUI:
       Any = 1
 
       def __init__(self, name, mode, invert=False):
-         super(FilterSet, self).__init__(name)
+         super().__init__(name)
          self.filters = []
          if mode != self.All and mode != self.Any:
             raise Exception("[das] Invalid FilterSet mode: %d" % mode)
@@ -101,7 +101,7 @@ if not NoUI:
 
       def copy(self):
          rv = FilterSet(self.name, self.mode, self.invert)
-         rv.filters = map(lambda x: x.copy(), self.filters)
+         rv.filters = [x.copy() for x in self.filters]
          return rv
 
       def matches(self, fullname):
@@ -120,7 +120,7 @@ if not NoUI:
          return ((not rv) if self.invert else rv)
 
       def add(self, flt, force=False):
-         for i in xrange(len(self.filters)):
+         for i in range(len(self.filters)):
             if flt.name == self.filters[i].name:
                if force:
                   self.filters[i] = flt.copy()
@@ -146,9 +146,9 @@ if not NoUI:
          self.filters = []
 
       def remove(self, idxOrName):
-         if isinstance(idxOrName, basestring):
+         if isinstance(idxOrName, str):
             idx = -1
-            for i in xrange(len(self.filters)):
+            for i in range(len(self.filters)):
                if idxOrName == self.filters[i].name:
                   idx = i
                   break
@@ -169,7 +169,7 @@ if not NoUI:
       ReservedTypeNames = set(["alias", "empty", "boolean", "integer", "real", "string", "list", "tuple", "set", "dict", "struct"])
 
       def __init__(self, name, row=0, key=None, parent=None):
-         super(ModelItem, self).__init__()
+         super().__init__()
          self.row = row
          self.key = key
          self.name = name
@@ -292,11 +292,11 @@ if not NoUI:
                self.typestr = "empty"
             elif isinstance(self.data, bool):
                self.typestr = "boolean"
-            elif isinstance(self.data, (int, long)):
+            elif isinstance(self.data, int):
                self.typestr = "integer"
             elif isinstance(self.data, float):
                self.typestr = "real"
-            elif isinstance(self.data, basestring):
+            elif isinstance(self.data, str):
                self.typestr = "string"
             else:
                self.typestr = self.class_name(self.data.__class__)
@@ -327,7 +327,7 @@ if not NoUI:
                   values.append(("boolean", v))
             elif isinstance(t, das.schematypes.Integer):
                try:
-                  v = long(s)
+                  v = int(s)
                   t._validate_self(v)
                   values.append(("integer", v))
                except:
@@ -448,7 +448,7 @@ if not NoUI:
                self.resizable = True
                self.orderable = True
                if self.exists():
-                  for i in xrange(len(self.data)):
+                  for i in range(len(self.data)):
                      itemname = "[%d]" % i
                      itemdata = self.data[i]
                      newitem = ModelItem(itemname, row=i, parent=self)
@@ -460,7 +460,7 @@ if not NoUI:
                self.resizable = False
                self.orderable = True
                if self.exists():
-                  for i in xrange(len(self.data)):
+                  for i in range(len(self.data)):
                      itemname = "(%d)" % i
                      itemdata = self.data[i]
                      newitem = ModelItem(itemname, row=i, parent=self)
@@ -520,9 +520,9 @@ if not NoUI:
                self.uniformmapping = (len(self.type.vtypeOverrides) == 0)
                if self.exists():
                   i = 0
-                  dkeys = [x for x in self.data.iterkeys()]
+                  dkeys = [x for x in iter(self.data.keys())]
                   for k in sorted(dkeys):
-                     if isinstance(k, basestring):
+                     if isinstance(k, str):
                         itemname = k
                      elif hasattr(k, "value_to_string"):
                         itemname = k.value_to_string()
@@ -555,7 +555,7 @@ if not NoUI:
 
    class NewValueDialog(QtWidgets.QDialog):
       def __init__(self, vtype, excludes=None, name=None, parent=None):
-         super(NewValueDialog, self).__init__(parent, QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowSystemMenuHint)
+         super().__init__(parent, QtCore.Qt.WindowTitleHint|QtCore.Qt.WindowSystemMenuHint)
          self.setWindowTitle("Create new value")
          self.excludes = excludes
          self.data = vtype.make_default()
@@ -583,11 +583,11 @@ if not NoUI:
          self.okbtn.setEnabled(self.data is not None)
 
       def accept(self):
-         super(NewValueDialog, self).accept()
+         super().accept()
 
       def reject(self):
          self.data = None
-         super(NewValueDialog, self).reject()
+         super().reject()
 
 
    class FieldSlider(QtWidgets.QFrame):
@@ -596,7 +596,7 @@ if not NoUI:
       intValueChanged = QtCore.Signal(int, bool, str)
 
       def __init__(self, vmin, vmax, real=False, decimal=1, parent=None):
-         super(FieldSlider, self).__init__(parent)
+         super().__init__(parent)
          self._value = None
          self.real = real
          self.scale = 1
@@ -672,7 +672,7 @@ if not NoUI:
                val = float(txt)
             else:
                val = int(txt)
-         except Exception, e:
+         except Exception as e:
             invalid = True
             errmsg = str(e)
             # if text is not empty, reset field to real value
@@ -695,7 +695,7 @@ if not NoUI:
 
    class ModelItemDelegate(QtWidgets.QItemDelegate):
       def __init__(self, parent=None):
-         super(ModelItemDelegate, self).__init__(parent)
+         super().__init__(parent)
 
       def createEditor(self, parent, viewOptions, modelIndex):
          item = modelIndex.internalPointer()
@@ -745,7 +745,7 @@ if not NoUI:
             newkey = das.copy(item.key)
             try:
                newkey = val
-            except Exception, e:
+            except Exception as e:
                rv.setProperty("invalidState", True)
                rv.setProperty("message", "Invalid key (%s)" % e)
             else:
@@ -754,7 +754,7 @@ if not NoUI:
                tmpval = item.parent.type.vtype.make_default()
                try:
                   tmpdict[newkey] = tmpval
-               except Exception, e:
+               except Exception as e:
                   rv.setProperty("invalidState", True)
                   rv.setProperty("message", "Invalid key (%s)" % e)
                else:
@@ -800,7 +800,7 @@ if not NoUI:
             def textChanged(txt):
                try:
                   int(txt)
-               except Exception, e:
+               except Exception as e:
                   rv.setProperty("invalidState", True)
                   rv.setProperty("message", str(e))
                   # if text is not empty, reset to original value
@@ -826,7 +826,7 @@ if not NoUI:
             def textChanged(txt):
                try:
                   float(txt)
-               except Exception, e:
+               except Exception as e:
                   rv.setProperty("invalidState", True)
                   rv.setProperty("message", str(e))
                   # if text is not empty, reset to original value
@@ -864,7 +864,7 @@ if not NoUI:
          def textChanged(txt):
             try:
                item.data.copy().string_to_value(txt)
-            except Exception, e:
+            except Exception as e:
                rv.setProperty("invalidState", True)
                rv.setProperty("message", str(e))
             else:
@@ -992,7 +992,7 @@ if not NoUI:
             if item.type.min is not None and item.type.max is not None:
                data = widget.value()
             else:
-               data = long(widget.text())
+               data = int(widget.text())
          return model.setData(modelIndex, data, QtCore.Qt.EditRole)
 
       def setFltModelData(self, widget, model, modelIndex):
@@ -1027,7 +1027,7 @@ if not NoUI:
       messageChanged = QtCore.Signal(str)
 
       def __init__(self, data, type=None, name=None, readonly=False, headers=None, fieldfilters=None, parent=None):
-         super(Model, self).__init__(parent)
+         super().__init__(parent)
          # A little hacky but how else?
          if IsPySide2():
             self._org_data_changed = self.dataChanged # pylint: disable=access-member-before-definition
@@ -1036,7 +1036,7 @@ if not NoUI:
          if headers is None:
             self._headers = self.AllHeaders[:]
          else:
-            hdrs = filter(lambda x: x in self.AllHeaders, headers)
+            hdrs = [x for x in headers if x in self.AllHeaders]
             if not "Name" in hdrs:
                hdrs.insert(0, "Name")
             if not "Value" in hdrs:
@@ -1234,7 +1234,7 @@ if not NoUI:
          while idx < cnt:
             curKey = curKey + ("." if curKey else "") + spl[idx]
             nr = self.rowCount(parentIndex)
-            for r in xrange(nr):
+            for r in range(nr):
                index = self.index(r, 0, parentIndex)
                if index.isValid():
                   item = index.internalPointer()
@@ -1395,7 +1395,7 @@ if not NoUI:
                      rv = item.data.value_to_string()
                   else:
                      if isinstance(item.type, das.schematypes.Integer) and item.type.enum is not None:
-                        for k, v in item.type.enum.iteritems():
+                        for k, v in iter(item.type.enum.items()):
                            if v == item.data:
                               rv = k
                               break
@@ -1478,7 +1478,7 @@ if not NoUI:
                newkey = das.copy(item.key)
                try:
                   newkey = value
-               except Exception, e:
+               except Exception as e:
                   self.setItemErrorMessage(item, str(e))
                   return False
                if newkey != item.key:
@@ -1490,7 +1490,7 @@ if not NoUI:
                      try:
                         item.parent.data[newkey] = item.data
                         del(item.parent.data[item.key])
-                     except Exception, e:
+                     except Exception as e:
                         self.setItemErrorMessage(item.parent, str(e))
                         return False
                      else:
@@ -1504,7 +1504,7 @@ if not NoUI:
             elif self._headers[index.column()] == "Value":
                try:
                   structureChanged = self._setRawData(index, value)
-               except Exception, e:
+               except Exception as e:
                   self.setItemErrorMessage(index.internalPointer(), str(e))
                   return False
 
@@ -1588,7 +1588,7 @@ if not NoUI:
                seq = seq[:srcitem.row] + seq[srcitem.row+1:] + [srcitem.data]
                try:
                   self._setRawData(tgtindex, seq)
-               except Exception, e:
+               except Exception as e:
                   self.setItemErrorMessage(tgtitem, str(e))
                   return False
                self.dataChanged.emit(self.index(0, 1, tgtindex), self.index(self.rowCount(tgtindex)-1, 1, tgtindex))
@@ -1622,7 +1622,7 @@ if not NoUI:
                seq.insert(idx, srcitem.data)
                try:
                   self._setRawData(pindex, seq)
-               except Exception, e:
+               except Exception as e:
                   self.setItemErrorMessage(pitem, str(e))
                   return False
                self.dataChanged.emit(tgtindex if (tgtitem.row < srcitem.row) else srcindex, self.index(self.rowCount(pindex)-1, 1, pindex))
@@ -1638,7 +1638,7 @@ if not NoUI:
       messageChanged = QtCore.Signal(str)
 
       def __init__(self, data, type=None, name=None, readonly=False, headers=None, fieldfilters=None, parent=None):
-         super(Editor, self).__init__(parent)
+         super().__init__(parent)
          self.model = Model(data, type=type, name=name, readonly=readonly, headers=headers, fieldfilters=fieldfilters, parent=self)
          self.delegate = ModelItemDelegate(parent=self)
          self.selection = []
@@ -1715,7 +1715,7 @@ if not NoUI:
                         keys.add(key)
                         iipairs.append((index, item))
 
-               if len(set(map(lambda x: "" if x[1].parent is None else x[1].parent.fullname(), iipairs))) == 1:
+               if len({"" if x[1].parent is None else x[1].parent.fullname() for x in iipairs}) == 1:
                   # All items have same parent
                   index, item = iipairs[0]
                   if item.parent:
@@ -1777,7 +1777,7 @@ if not NoUI:
                      keys.add(key)
                      iipairs.append((index, item))
 
-            if len(set(map(lambda x: "" if x[1].parent is None else x[1].parent.fullname(), iipairs))) == 1:
+            if len({"" if x[1].parent is None else x[1].parent.fullname() for x in iipairs}):
                # All items have same parent
                index, item = iipairs[0]
 
@@ -1795,7 +1795,7 @@ if not NoUI:
                   elif isinstance(t, das.schematypes.Sequence):
                      return "sequence [%s]" % type_str(t.type)
                   elif isinstance(t, das.schematypes.Tuple):
-                     return "tuple (%s)" % ", ".join(map(type_str, t.types))
+                     return "tuple (%s)" % ", ".join([type_str(x) for x in t.types])
                   elif isinstance(t, das.schematypes.Dict):
                      return "mapping {%s -> %s}" % (type_str(t.ktype), type_str(t.vtype))
                   else:
@@ -1810,7 +1810,7 @@ if not NoUI:
                         if item.mappingkeytype is not None:
                            vtypes = []
                            if isinstance(item.type.vtype, das.schematypes.Or):
-                              vtypes = filter(lambda x: not isinstance(x, das.schematypes.Deprecated), item.type.vtype.types)
+                              vtypes = [x for x in item.type.vtype.types if not isinstance(x, das.schematypes.Deprecated)]
                            if len(vtypes) > 1:
                               actionAddMenu = menu.addMenu("Add to '%s'..." % ifn)
                               for ot in vtypes:
@@ -1828,7 +1828,7 @@ if not NoUI:
                            if item.resizable:
                               vtypes = []
                               if isinstance(item.type.type, das.schematypes.Or):
-                                 vtypes = filter(lambda x: not isinstance(x, das.schematypes.Deprecated), item.type.type.types)
+                                 vtypes = [x for x in item.type.type.types if not isinstance(x, das.schematypes.Deprecated)]
                               if len(vtypes) > 1:
                                  actionAddMenu = menu.addMenu("Add to '%s'" % ifn)
                                  for ot in vtypes:
@@ -1845,7 +1845,7 @@ if not NoUI:
                         else:
                            vtypes = []
                            if isinstance(item.type.type, das.schematypes.Or):
-                              vtypes = filter(lambda x: not isinstance(x, das.schematypes.Deprecated), item.type.type.types)
+                              vtypes = [x for x in item.type.type.types if not isinstance(x, das.schematypes.Deprecated)]
                            if len(vtypes) > 1:
                               actionAddMenu = menu.addMenu("Add to '%s'..." % ifn)
                               for ot in vtypes:
@@ -1908,7 +1908,7 @@ if not NoUI:
             menu.popup(event.globalPos())
 
          else:
-            super(Editor, self).mousePressEvent(event)
+            super().mousePressEvent(event)
  
       def getItemKey(self, modelIndex):
          return modelIndex.internalPointer().fullname(skipRoot=True)
@@ -1997,7 +1997,7 @@ if not NoUI:
                self.expandedState[k] = self.isExpanded(index)
 
          nr = self.model.rowCount(index)
-         for r in xrange(nr):
+         for r in range(nr):
             self.resetExpandedState(index=self.model.index(r, 0, index))
 
          self.model.layoutChanged.emit()
@@ -2017,7 +2017,7 @@ if not NoUI:
                stateSet = True
 
          nr = self.model.rowCount(index)
-         for r in xrange(nr):
+         for r in range(nr):
             if self.restoreExpandedState(index=self.model.index(r, 0, index)):
                stateSet = True
 
@@ -2137,7 +2137,7 @@ if not NoUI:
             undoData = das.copy(self.model.getData())
             try:
                item.data[dlg.data] = (item.type.vtype.make_default() if value is None else value)
-            except Exception, e:
+            except Exception as e:
                self.model.setItemErrorMessage(item, "Failed to add key %s\n(%s)" % (dlg.data, e))
             else:
                self.model.pushUndo(undoData)
@@ -2164,7 +2164,7 @@ if not NoUI:
             undoData = das.copy(self.model.getData())
             try:
                item.data.add(dlg.data)
-            except Exception, e:
+            except Exception as e:
                self.model.setItemErrorMessage(item, "Failed to add value %s\n(%s)" % (dlg.data, e))
             else:
                self.model.pushUndo(undoData)
@@ -2206,7 +2206,7 @@ if not NoUI:
       def remSeqItems(self, indices):
          # Not really
          if len(indices) > 0:
-            parents = set(map(lambda x: "" if x.parent is None else x.parent.fullname(), [y.internalPointer() for y in indices]))
+            parents = set(["" if x.parent else x.parent.fullname() for x in [y.internalPointer() for y in indices]])
             if len(parents) != 1:
                return
 
@@ -2214,7 +2214,7 @@ if not NoUI:
             curseq = parentIndex.internalPointer().data
             newseq = []
             remrows = set([index.row() for index in indices])
-            for row in xrange(len(curseq)):
+            for row in range(len(curseq)):
                if not row in remrows:
                   newseq.append(curseq[row])
 

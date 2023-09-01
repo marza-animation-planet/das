@@ -20,7 +20,7 @@ class SequenceEcho(das.Mixin):
     super(SequenceEcho, self).__init__(*args, **kwargs)
 
   def niceEcho(self):
-    print("Sequence value [%s] : [%s]" % (len(self), ", ".join(map(lambda x: "'%s'" % x, self))))
+    print("Sequence value [%s] : [%s]" % (len(self), ", ".join(["'%s'" % x for x in self])))
 
 class SetEcho(das.Mixin):
   @classmethod
@@ -31,7 +31,7 @@ class SetEcho(das.Mixin):
     super(SetEcho, self).__init__(*args, **kwargs)
 
   def niceEcho(self):
-    print("Set value [%s] : (%s)" % (len(self), ", ".join(map(lambda x: "'%s'" % x, self))))
+    print("Set value [%s] : (%s)" % (len(self), ", ".join(["'%s'" % x for x in self])))
 
 class DictEcho(das.Mixin):
   @classmethod
@@ -42,6 +42,6 @@ class DictEcho(das.Mixin):
     super(DictEcho, self).__init__(*args, **kwargs)
 
   def niceEcho(self):
-    print("Dict value [%s] : {%s}" % (len(self), ", ".join(map(lambda x: "%s = '%s'" % x, self.items()))))
+    print("Dict value [%s] : {%s}" % (len(self), ", ".join("%s = '%s'" % x for x in self.items())))
 
 das.register_mixins(TupleEcho, SequenceEcho, SetEcho, DictEcho)

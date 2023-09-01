@@ -13,12 +13,12 @@ except:
 
 class BindError(Exception):
    def __init__(self, msg):
-      super(BindError, self).__init__(msg)
+      super().__init__(msg)
 
 
 class SchemaTypeError(Exception):
    def __init__(self, msg):
-      super(SchemaTypeError, self).__init__(msg)
+      super().__init__(msg)
 
 
 class Mixin(object):
@@ -27,7 +27,7 @@ class Mixin(object):
       raise SchemaTypeError("No target schema type for mixin '%s'" % klass.__name__)
 
    def __init__(self, *args, **kwargs):
-      super(Mixin, self).__init__()
+      super().__init__()
 
 
 _DynamicClasses = {}
@@ -64,7 +64,7 @@ def is_class_method(klass, name):
       return (getattr(klass, name).__self__ is klass)
 
 def list_methods(klass):
-   return filter(lambda x: is_instance_method(klass, x) and x not in _IgnoreMethods, dir(klass))
+   return [x for x in dir(klass) if is_instance_method(klass, x) and x not in _IgnoreMethods]
 
 
 def get_bound_mixins(instance):
