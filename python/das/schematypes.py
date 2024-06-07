@@ -1267,6 +1267,8 @@ class Class(TypeValidator):
          if c is None:
             g = globals()
             if not i in g:
+               # TODO: We must change imp to importlib. The imp module is deprecated in favor of importlib.(Deprecated since version 3.4)
+               # https://docs.python.org/3.10/library/imp.html
                c = imp.load_module(i, *imp.find_module(i))
             else:
                c = globals()[i]
