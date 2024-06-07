@@ -7,12 +7,12 @@ import copy
 import das
 from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING
 
-def load_source(modname, filename):
+def load_source(modname, filepath):
    import importlib.util
    import importlib.machinery
 
-   loader = importlib.machinery.SourceFileLoader(modname, filename)
-   spec = importlib.util.spec_from_file_location(modname, filename, loader=loader)
+   loader = importlib.machinery.SourceFileLoader(modname, filepath)
+   spec = importlib.util.spec_from_file_location(modname, filepath, loader=loader)
 
    module = importlib.util.module_from_spec(spec)
 
