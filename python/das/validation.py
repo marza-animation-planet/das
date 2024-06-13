@@ -1,12 +1,28 @@
 import os
 import re
 import sys
-import imp
+import importlib
 import glob
 import copy
 import das
 from typing import Any, Dict, List, Optional, Set, TYPE_CHECKING
 
+def load_source(modname, filepath):
+   import importlib.util
+   import importlib.machinery
+
+   loader = importlib.machinery.SourceFileLoader(modname, filepath)
+   spec = importlib.util.spec_from_file_location(modname, filepath, loader=loader)
+
+   module = importlib.util.module_from_spec(spec)
+
+   # The module is always executed and not cached in sys.modules.
+   # Uncomment the following line to cache the module.
+   sys.modules[module.__name__] = module
+   # loader.exec_module(module)
+   spec.loader.exec_module(module)
+
+   return module
 
 if sys.version_info.major >= 3:
    def cmp(a, b):
@@ -69,7 +85,7 @@ class Schema(object):
       if os.path.isfile(pmp):
          try:
             modname = os.path.splitext(os.path.basename(self.path))[0]
-            mod = imp.load_source("das.schema.%s" % modname, pmp)
+            mod = load_source("das.schema.%s" % modname, pmp)
          except Exception as e:
             import traceback
             print("[das] Failed to load schema module '%s' (%s)" % (pmp, e))
