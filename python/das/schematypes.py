@@ -1,4 +1,5 @@
 import re
+import os
 from typing import Any, Dict as TypeDict
 import das
 import imp
@@ -177,6 +178,14 @@ class Integer(TypeValidator):
          self.enumvals = set(self.enum.values())
 
    def _validate_self(self, value):
+      def _isInt(v):
+         try:
+            int(v, 10)
+         except ValueError:
+            return False
+         else:
+            return True
+
       if self.enum is not None:
          if isinstance(value, str):
             v = das.ascii_or_unicode(value)
@@ -188,7 +197,17 @@ class Integer(TypeValidator):
             if not value in self.enumvals:
                raise ValidationError("Expected a enumeration value (string or integer) in %s, got %s" % (self.enum, value))
       if not isinstance(value, int):
-         raise ValidationError("Expected an integer value, got %s" % type(value).__name__)
+         if isinstance(value, str):
+            v = os.environ.get(value, None)
+            if v is None:
+               raise ValidationError("Do not exist environment value, got '%s'" % value)
+
+            if not _isInt(v):
+               raise ValidationError("Could not cast to an integer value, got %s" % type(value).__name__)
+
+            value = v
+         else:
+            raise ValidationError("Expected an integer value, got %s" % type(value).__name__)
       if self.enum is None:
          if self.min is not None and value < self.min:
             raise ValidationError("Integer value out of range, %d < %d" % (value, self.min))
