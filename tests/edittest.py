@@ -28,7 +28,7 @@ class CustomClass(object):
    def set_value(self, value):
       self._value = None
 
-      if isinstance(value, (str, unicode)):
+      if isinstance(value, str):
          self.string_to_value(value)
          return
 
@@ -43,9 +43,9 @@ class CustomClass(object):
 
       if items is not None:
          for k, v in items:
-            if not isinstance(k, (str, unicode)):
+            if not isinstance(k, str):
                raise Exception("Key type must be str or unicode")
-            if not isinstance(v, (int, long)):
+            if not isinstance(v, int):
                raise Exception("Value type must be int or long")
             d[k] = v
       else:

@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "das"
+version = "1.1.0"
+description = "Dictionary As Struct"
+authors = ["Marza Animation Planet <info@marza.com>"]
+readme = "README.md"
+license = "MIT"
+repository = "https://github.com/marza-animation-planet/das"
+packages = [
+    { include = "das", from = "python" }
+]
+
+[tool.poetry.scripts]
+dasadd = "das.tools.dasadd:main"
+dasedit = "das.tools.dasedit:main"
+daseval = "das.tools.daseval:main"
+dasget = "das.tools.dasget:main"
+dasset = "das.tools.dasset:main"
+
+[tool.poetry.dependencies]
+python = ">=3.9"
+"Qt.py" = "^1.4.1"
+deepdiff = "^8.0.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
