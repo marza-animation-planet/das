@@ -5,7 +5,6 @@ import datetime
 import typing
 from typing import Any, List, Union, Optional
 
-__version__ = "1.0.1"
 __verbose__ = False
 try:
    __verbose__ = (int(os.environ.get("DAS_VERBOSE", "0")) != 0)
