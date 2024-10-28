@@ -15,6 +15,7 @@ dasadd = "das.tools.dasadd:main"
 dasedit = "das.tools.dasedit:main"
 daseval = "das.tools.daseval:main"
 dasget = "das.tools.dasget:main"
+dasrm = "das.tools.dasrm:main"
 dasset = "das.tools.dasset:main"
 
 [tool.poetry.dependencies]
