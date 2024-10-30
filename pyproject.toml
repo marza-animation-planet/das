@@ -19,7 +19,7 @@ dasrm = "das.tools.dasrm:main"
 dasset = "das.tools.dasset:main"
 
 [tool.poetry.dependencies]
-python = ">=3.9"
+python = "^3.9"
 "Qt.py" = "^1.4.1"
 deepdiff = "^8.0.1"
 
