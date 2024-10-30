@@ -1,144 +1,168 @@
 import re
+import argparse
 
-_opening_chars = "([{"
-_closing_chars = ")]}"
-_subscript_expr = re.compile(r"^(.*)\[([^]]+)\]$")
+_OPENING_CHARS = "([{"
+_CLOSING_CHARS = ")]}"
+_SUBSCRIPT_EXPR = re.compile(r"^(.*)\[([^]]+)\]$")
 # 'set' and 'eval' functions are defined below so keep a reference to python's 'set' class
 _pyset = set
 _pyeval = eval
 
+
 def _merge(field_parts):
-   i = 0
-   n = len(field_parts)
-   o = []
-   while i < n:
-      part = field_parts[i]
-      if part:
-         opencnt = 0
-         for c in _opening_chars:
-            opencnt += part.count(c)
-         for c in _closing_chars:
-            opencnt -= part.count(c)
-         while opencnt != 0:
-            i += 1
-            if i >= n:
-               raise Exception("Unbalanced parenthesis or brackets")
-            npart = field_parts[i]
-            part += "." + npart
-            for c in _opening_chars:
-               opencnt += npart.count(c)
-            for c in _closing_chars:
-               opencnt -= npart.count(c)
-         o.append(part)
-      i += 1
-   return o
+    i = 0
+    n = len(field_parts)
+    o = []
+    while i < n:
+        part = field_parts[i]
+        if part:
+            opencnt = 0
+            for c in _OPENING_CHARS:
+                opencnt += part.count(c)
+            for c in _CLOSING_CHARS:
+                opencnt -= part.count(c)
+            while opencnt != 0:
+                i += 1
+                if i >= n:
+                    raise Exception("Unbalanced parenthesis or brackets")
+                npart = field_parts[i]
+                part += "." + npart
+                for c in _OPENING_CHARS:
+                    opencnt += npart.count(c)
+                for c in _CLOSING_CHARS:
+                    opencnt -= npart.count(c)
+            o.append(part)
+        i += 1
+    return o
+
 
 def _generic_do(data, key, val=None, attrfunc=None, subscriptfunc=None):
-   field = data
+    field = data
 
-   parts = _merge(key.split("."))
-   nparts = len(parts)
+    parts = _merge(key.split("."))
+    nparts = len(parts)
 
-   novalue = (val is None)
-   value = None
-   if not novalue:
-      novalue = False
-      try:
-         value = _pyeval(val)
-      except Exception as e:
-         raise Exception("Invalid value %s: %s\n" % (val, e))
+    novalue = val is None
+    value = None
+    if not novalue:
+        novalue = False
+        try:
+            value = _pyeval(val)
+        except Exception as e:
+            raise Exception("Invalid value %s: %s\n" % (val, e))
 
-   if not novalue and (attrfunc is None or subscriptfunc is None):
-      raise Exception("'attrfunc' and 'subscriptfunc' functions must be provided")
+    if not novalue and (attrfunc is None or subscriptfunc is None):
+        raise Exception("'attrfunc' and 'subscriptfunc' functions must be provided")
 
-   retval = None
+    retval = None
 
-   for i in range(nparts):
-      part = parts[i]
-      if not part:
-         continue
+    for i in range(nparts):
+        part = parts[i]
+        if not part:
+            continue
 
-      last = (i + 1 == nparts)
+        last = i + 1 == nparts
 
-      m = _subscript_expr.match(part)
+        m = _SUBSCRIPT_EXPR.match(part)
 
-      if m is None:
-         if last and attrfunc:
-            if novalue:
-               retval = attrfunc(field, part)
+        if m is None:
+            if last and attrfunc:
+                if novalue:
+                    retval = attrfunc(field, part)
+                else:
+                    retval = attrfunc(field, part, value)
             else:
-               retval = attrfunc(field, part, value)
-         else:
+                field = getattr(field, part)
+                if last:
+                    retval = field
+
+        else:
+            subscripts = []
+            while m is not None:
+                subscripts.append(_pyeval(m.group(2)))
+                part = m.group(1)
+                m = _SUBSCRIPT_EXPR.match(part)
+            subscripts.reverse()
+            nsubscripts = len(subscripts)
+
             field = getattr(field, part)
-            if last:
-               retval = field
+            for j in range(nsubscripts):
+                subscript = subscripts[j]
+                lastsubscript = j + 1 == nsubscripts
+                if lastsubscript and subscriptfunc:
+                    if novalue:
+                        retval = subscriptfunc(field, subscript)
+                    else:
+                        retval = subscriptfunc(field, subscript, value)
+                else:
+                    field = field[subscript]
+                    if lastsubscript:
+                        retval = field
 
-      else:
-         subscripts = []
-         while m is not None:
-            subscripts.append(_pyeval(m.group(2)))
-            part = m.group(1)
-            m = _subscript_expr.match(part)
-         subscripts.reverse()
-         nsubscripts = len(subscripts)
+    return field if len(parts) == 0 else retval
 
-         field = getattr(field, part)
-         for j in range(nsubscripts):
-            subscript = subscripts[j]
-            lastsubscript = (j + 1 == nsubscripts)
-            if lastsubscript and subscriptfunc:
-               if novalue:
-                  retval = subscriptfunc(field, subscript)
-               else:
-                  retval = subscriptfunc(field, subscript, value)
-            else: 
-               field = field[subscript]
-               if lastsubscript:
-                  retval = field
-
-   return (field if len(parts) == 0 else retval)
 
 def _attr_set(data, attr, value):
-   setattr(data, attr, value)
+    setattr(data, attr, value)
+
 
 def _subscript_set(data, index, value):
-   data[index] = value
+    data[index] = value
+
 
 def _any_add(data, value):
-   if isinstance(data, list):
-      data.append(value)
-   elif isinstance(data, _pyset):
-      data.add(value)
-   else:
-      raise Exception("Cannot add value to %s" % type(data).__name__)
+    if isinstance(data, list):
+        data.append(value)
+    elif isinstance(data, _pyset):
+        data.add(value)
+    else:
+        raise Exception("Cannot add value to %s" % type(data).__name__)
+
 
 def _attr_add(data, attr, value):
-   _any_add(getattr(data, attr), value)
+    _any_add(getattr(data, attr), value)
+
 
 def _subscript_add(data, index, value):
-   _any_add(data[index], value)
+    _any_add(data[index], value)
+
 
 def _attr_remove(data, attr):
-   delattr(data, attr)
+    delattr(data, attr)
+
 
 def _subscript_remove(data, index):
-   del(data[index])
+    del data[index]
+
 
 # ---
+class StorePairs(argparse.Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        if (len(values) % 2) != 0:
+            raise argparse.ArgumentError(
+                self, "Odd number of arguments provided, can't make pairs."
+            )
+        setattr(namespace, self.dest, zip(values[::2], values[1::2]))
+
 
 # 'key', 'value' and 'expr' parameter are strings
 
+
 def set(data, key, value):
-   _generic_do(data, key, value, attrfunc=_attr_set, subscriptfunc=_subscript_set)
+    _generic_do(data, key, value, attrfunc=_attr_set, subscriptfunc=_subscript_set)
+
 
 def add(data, key, value):
-   _generic_do(data, key, value, attrfunc=_attr_add, subscriptfunc=_subscript_add)
+    _generic_do(data, key, value, attrfunc=_attr_add, subscriptfunc=_subscript_add)
+
 
 def remove(data, key):
-   _generic_do(data, key, attrfunc=_attr_remove, subscriptfunc=_subscript_remove)
+    _generic_do(data, key, attrfunc=_attr_remove, subscriptfunc=_subscript_remove)
+
 
 def get(data, key):
-   return _generic_do(data, key)
+    return _generic_do(data, key)
+
 
 def eval(data, expr):
-   return _pyeval(expr, globals(), {"data": data})
+    return _pyeval(expr, globals(), {"data": data})
