@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "das"
-version = "1.1.0"
+name = "mz-das"
+version = "2.0.0b0"
 description = "Dictionary As Struct"
 authors = ["Marza Animation Planet <info@marza.com>"]
 readme = "README.md"
