@@ -1,16 +1,15 @@
-[tool.poetry]
+[project]
+dynamic = ["version"]
 name = "mz-das"
-version = "2.0.0b0"
 description = "Dictionary As Struct"
-authors = ["Marza Animation Planet <info@marza.com>"]
+authors = [{ name = "Marza Animation Planet", email = "info@marza.com" }]
 readme = "README.md"
-license = "MIT"
+license = { file = "LICENSE" }
 repository = "https://github.com/marza-animation-planet/das"
-packages = [
-    { include = "das", from = "python" }
-]
+dependencies = ["Qt.py~=1.4.1", "deepdiff~=8.0.1"]
+requires-python = ">=3.9"
 
-[tool.poetry.scripts]
+[project.scripts]
 dasadd = "das.tools.dasadd:main"
 dasedit = "das.tools.dasedit:main"
 daseval = "das.tools.daseval:main"
@@ -18,12 +17,12 @@ dasget = "das.tools.dasget:main"
 dasrm = "das.tools.dasrm:main"
 dasset = "das.tools.dasset:main"
 
-[tool.poetry.dependencies]
-python = "^3.9"
-"Qt.py" = "^1.4.1"
-deepdiff = "^8.0.1"
+[tool.hatch.version]
+path = "python/das/__init__.py"
 
+[tool.hatch.build.targets.wheel]
+packages = ["python/das"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
