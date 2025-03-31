@@ -5,9 +5,11 @@ description = "Dictionary As Struct"
 authors = [{ name = "Marza Animation Planet", email = "info@marza.com" }]
 readme = "README.md"
 license = { file = "LICENSE" }
-repository = "https://github.com/marza-animation-planet/das"
 dependencies = ["Qt.py~=1.4.1", "deepdiff~=8.0.1"]
 requires-python = ">=3.9"
+
+[project.urls]
+Repository = "https://github.com/marza-animation-planet/das"
 
 [project.scripts]
 dasadd = "das.tools.dasadd:main"
