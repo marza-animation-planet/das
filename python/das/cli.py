@@ -36,7 +36,7 @@ def _merge(field_parts):
     return o
 
 
-def _generic_do(data, key, val=None, attrfunc=None, subscriptfunc=None):
+def _generic_do(data, key: str, val=None, attrfunc=None, subscriptfunc=None):
     field = data
 
     parts = _merge(key.split("."))
@@ -160,7 +160,7 @@ def remove(data, key):
     _generic_do(data, key, attrfunc=_attr_remove, subscriptfunc=_subscript_remove)
 
 
-def get(data, key):
+def get(data, key: str):
     return _generic_do(data, key)
 
 
