@@ -5,7 +5,7 @@ description = "Dictionary As Struct"
 authors = [{ name = "Marza Animation Planet", email = "info@marza.com" }]
 readme = "README.md"
 license = { file = "LICENSE" }
-dependencies = ["Qt.py~=1.4.1", "deepdiff~=8.0.1"]
+dependencies = ["Qt.py~=1.4.1", "deepdiff~=8.4.2"]
 requires-python = ">=3.9"
 
 [project.urls]
