@@ -39,7 +39,8 @@ from . import schematypes
 from . import types
 
 # For backward compatibiilty
-__version__ = "2.0.0b2"
+__version__ = "2.0.0b3"
+VERSION_RE = re.compile(r"(\d+\.\d+\.\d+).*")
 Das = Struct
 
 
@@ -421,17 +422,21 @@ def read_string(
 #           0 forward compatible
 #           1 fully compatible
 #           2 backward compatible
-def is_version_compatible(reqver, curver):
+def is_version_compatible(reqver: str, curver: str):
    try:
-      cur = [int(x) for x in curver.split(".")]
-      req = [int(x) for x in reqver.split(".")]
+      req_match = VERSION_RE.fullmatch(reqver)
+      cur_match = VERSION_RE.fullmatch(curver)
+      if not req_match or not cur_match:
+         return -2
+      cur = [int(x) for x in cur_match.group(1).split(".")]
+      req = [int(x) for x in req_match.group(1).split(".")]
       if req[0] > cur[0]:
          return -1
       elif req[0] == cur[0] and req[1] > cur[1]:
          return 0
       else:
          return (1 if req[1] == cur[1] else 2)
-   except:
+   except ValueError:
       return -2
 
 
