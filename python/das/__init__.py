@@ -40,7 +40,7 @@ from . import types
 
 # For backward compatibiilty
 __version__ = "2.0.0b3"
-VERSION_RE = re.compile(r"(\d+\.\d+\.\d+).*")
+VERSION_RE = re.compile(r"(\d+\.\d+).*")
 Das = Struct
 
 
