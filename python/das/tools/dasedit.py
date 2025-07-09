@@ -257,7 +257,7 @@ def main() -> int:
 
         style = ""
         # if sys.platform == "darwin":
-        if Qt.__binding__ in ("PySide2", "PyQt5"):
+        if Qt.__binding__ in ("PySide2", "PyQt5", "PySide6", "PyQt6"):
             # Introduced in Qt5
             style = "fusion"
         else:
