@@ -431,7 +431,10 @@ def main() -> int:
 
         win = Window(data=data, path=file_path)
         win.show()
-        app.exec_()
+        if Qt.IsPySide or Qt.IsPyQt4 or Qt.IsPySide2 or Qt.IsPyQt5:
+            app.exec_()
+        else:
+            app.exec()
 
     else:
         das.pprint(data)
