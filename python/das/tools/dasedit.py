@@ -92,7 +92,6 @@ def main() -> int:
     if not echo_only:
         from Qt import QtWidgets
         from Qt import QtGui
-        from Qt import QtWidgets
         import das.qtui
 
         class Window(QtWidgets.QMainWindow):
