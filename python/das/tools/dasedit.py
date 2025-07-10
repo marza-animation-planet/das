@@ -92,7 +92,6 @@ def main() -> int:
     if not echo_only:
         from Qt import QtWidgets
         from Qt import QtGui
-        from Qt import QtWidgets
         import das.qtui
 
         class Window(QtWidgets.QMainWindow):
@@ -192,9 +191,6 @@ def main() -> int:
                     if rv == QtWidgets.QMessageBox.Yes:
                         self.onSave()
                 rv = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", "", "All Files (*.*)")
-                # PyQt4 and PySide behaves in a difference way
-                #   PyQt4  : QFileDialog.getOpenFileName -> str        [file path]
-                #   PySide : QFileDialog.getOpenFileName -> (str, str) [file path, filter]
                 if not isinstance(rv, str):
                     rv = rv[0]
                 if rv and os.path.isfile(rv):
@@ -257,7 +253,7 @@ def main() -> int:
 
         style = ""
         # if sys.platform == "darwin":
-        if Qt.__binding__ in ("PySide2", "PyQt5"):
+        if Qt.__binding__ in ("PySide2", "PyQt5", "PySide6", "PyQt6"):
             # Introduced in Qt5
             style = "fusion"
         else:
@@ -431,7 +427,10 @@ def main() -> int:
 
         win = Window(data=data, path=file_path)
         win.show()
-        app.exec_()
+        if Qt.IsPySide2 or Qt.IsPyQt5:
+            app.exec_()
+        else:
+            app.exec()
 
     else:
         das.pprint(data)
