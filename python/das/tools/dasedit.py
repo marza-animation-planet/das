@@ -191,9 +191,6 @@ def main() -> int:
                     if rv == QtWidgets.QMessageBox.Yes:
                         self.onSave()
                 rv = QtWidgets.QFileDialog.getOpenFileName(self, "Open File", "", "All Files (*.*)")
-                # PyQt4 and PySide behaves in a difference way
-                #   PyQt4  : QFileDialog.getOpenFileName -> str        [file path]
-                #   PySide : QFileDialog.getOpenFileName -> (str, str) [file path, filter]
                 if not isinstance(rv, str):
                     rv = rv[0]
                 if rv and os.path.isfile(rv):
@@ -430,7 +427,7 @@ def main() -> int:
 
         win = Window(data=data, path=file_path)
         win.show()
-        if Qt.IsPySide or Qt.IsPyQt4 or Qt.IsPySide2 or Qt.IsPyQt5:
+        if Qt.IsPySide2 or Qt.IsPyQt5:
             app.exec_()
         else:
             app.exec()

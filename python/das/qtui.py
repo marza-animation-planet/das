@@ -17,13 +17,6 @@ except Exception as e:
 
 
 if not NoUI:
-   def IsPySide1():
-      if hasattr(Qt, "__version_info__"):
-         return Qt.__version_info__[0] == 1
-      if hasattr(Qt, "IsPySide"):
-         return Qt.IsPySide
-      return False
-
 
    class FieldFilter(object):
       def __init__(self, name):
@@ -1028,11 +1021,9 @@ if not NoUI:
 
       def __init__(self, data, type=None, name=None, readonly=False, headers=None, fieldfilters=None, parent=None):
          super().__init__(parent)
-         # A little hacky but how else?
-         if not IsPySide1():
-            self._org_data_changed = self.dataChanged # pylint: disable=access-member-before-definition
-            self.dataChanged = self.dataChanged2Args
-            self.dataChanged.connect(self.__emitDataChanged)
+         self._org_data_changed = self.dataChanged
+         self.dataChanged = self.dataChanged2Args
+         self.dataChanged.connect(self.__emitDataChanged)
          if headers is None:
             self._headers = self.AllHeaders[:]
          else:
@@ -1283,7 +1274,6 @@ if not NoUI:
             if self._headers[index.column()] == "Name":
                if item.exists():
                   flags = flags | QtCore.Qt.ItemIsEnabled
-               # flags = flags | QtCore.Qt.ItemIsUserCheckable
                if not self._readonly:
                   if item.parent:
                      if item.parent.mapping and item.parent.mappingkeytype is not None:
