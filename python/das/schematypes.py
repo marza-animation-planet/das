@@ -189,23 +189,22 @@ class Integer(TypeValidator):
       if self.enum is not None:
          if isinstance(value, str):
             v = das.ascii_or_unicode(value)
-            if not v in self.enum:
+            if v not in self.enum:
                raise ValidationError("Expected a enumeration string in %s, got %s" % (self.enum.keys(), repr(value)))
             else:
                value = self.enum[v]
          elif isinstance(value, int):
-            if not value in self.enumvals:
+            if value not in self.enumvals:
                raise ValidationError("Expected a enumeration value (string or integer) in %s, got %s" % (self.enum, value))
       if not isinstance(value, int):
          if isinstance(value, str):
-            v = os.environ.get(value, None)
-            if v is None:
-               raise ValidationError("Do not exist environment value, got '%s'" % value)
+            if os.environ.get(value):
+               value = os.environ.get(value)
 
-            if not _isInt(v):
+            if not _isInt(value):
                raise ValidationError("Could not cast to an integer value, got %s" % type(value).__name__)
 
-            value = v
+            value = int(value)
          else:
             raise ValidationError("Expected an integer value, got %s" % type(value).__name__)
       if self.enum is None:
