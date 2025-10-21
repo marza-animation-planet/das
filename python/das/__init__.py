@@ -303,7 +303,7 @@ def _read_file(path, skip_content=False):
    content = ""
    md = {}
    if os.path.isfile(path):
-      with open(path, "r") as f:
+      with open(path, "r", encoding="utf-8") as f:
          for l in f.readlines():
             sl = l.strip()
             if sl.startswith("#"):
@@ -1199,7 +1199,7 @@ def write(d, path, indent="  ", encoding=None):
    if encoding is None and schema_type:
       encoding = "utf8"
 
-   with open(path, "w") as f:
+   with open(path, "w", encoding=encoding) as f:
       if encoding is not None:
          f.write("# encoding: %s\n" % encoding)
       f.write("# version: %s\n" % __version__)
