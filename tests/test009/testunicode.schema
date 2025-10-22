@@ -1,7 +1,7 @@
-# encoding: shift_jis
+# encoding: utf8
 # name: unicode
 {
    "Person": Struct(firstname=String(),
                     lastname=String(),
-                    gender=String(default="–¢’è", choices=["–¢’è", "’j", "—"]))
+                    gender=String(default="æœªå®š", choices=["æœªå®š", "ç”·", "å¥³"]))
 }
