@@ -1196,8 +1196,9 @@ def write(d, path, indent="  ", encoding=None):
 
    schema_type = d._get_schema_type()
 
-   if encoding is None and schema_type:
-      encoding = "utf8"
+   if encoding:
+      print_once("[das] Argument 'encoding' is not used. Force UTF-8.")
+   encoding = "utf8"
 
    with open(path, "w", encoding=encoding) as f:
       if encoding is not None:
@@ -1260,7 +1261,11 @@ def write_csv(data, path, alias=None, encoding=None, delimiter="\t", newline="\n
       for k in keys:
          _dump_csv_data(k, d[k], schema_type[k], headers, parent=schem_val, prefix=prefix)
 
-   with open(path, "w", encoding="utf8") as f:
+   if encoding:
+      print_once("[das] Argument 'encoding' is not used. Force UTF-8.")
+   encoding = "utf8"
+
+   with open(path, "w", encoding=encoding) as f:
       f.write(delimiter.join([x.name() for x in headers]))
       row_counts = max([x.row_count() for x in headers])
 
