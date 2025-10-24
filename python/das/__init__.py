@@ -39,7 +39,7 @@ from . import schematypes
 from . import types
 
 # For backward compatibiilty
-__version__ = "2.0.0b6"
+__version__ = "2.0.0b7"
 VERSION_RE = re.compile(r"(\d+\.\d+).*")
 Das = Struct
 
@@ -303,7 +303,7 @@ def _read_file(path, skip_content=False):
    content = ""
    md = {}
    if os.path.isfile(path):
-      with open(path, "r") as f:
+      with open(path, "r", encoding="utf8") as f:
          for l in f.readlines():
             sl = l.strip()
             if sl.startswith("#"):
@@ -846,7 +846,7 @@ def read_csv(csv_path: str, delimiter: str = "\t", newline: str = "\n") -> List:
    if not os.path.isfile(csv_path):
       return []
 
-   with open(csv_path, "r") as f:
+   with open(csv_path, "r", encoding="utf8") as f:
       lines = [re_strip.sub("", x) for x in f.readlines()]
 
    if len(lines) == 0:
@@ -1196,10 +1196,11 @@ def write(d, path, indent="  ", encoding=None):
 
    schema_type = d._get_schema_type()
 
-   if encoding is None and schema_type:
-      encoding = "utf8"
+   if encoding:
+      print_once("[das] Argument 'encoding' is not used. Force UTF-8.")
+   encoding = "utf8"
 
-   with open(path, "w") as f:
+   with open(path, "w", encoding=encoding) as f:
       if encoding is not None:
          f.write("# encoding: %s\n" % encoding)
       f.write("# version: %s\n" % __version__)
@@ -1260,7 +1261,11 @@ def write_csv(data, path, alias=None, encoding=None, delimiter="\t", newline="\n
       for k in keys:
          _dump_csv_data(k, d[k], schema_type[k], headers, parent=schem_val, prefix=prefix)
 
-   with open(path, "w") as f:
+   if encoding:
+      print_once("[das] Argument 'encoding' is not used. Force UTF-8.")
+   encoding = "utf8"
+
+   with open(path, "w", encoding=encoding) as f:
       f.write(delimiter.join([x.name() for x in headers]))
       row_counts = max([x.row_count() for x in headers])
 
@@ -1290,7 +1295,7 @@ def write_csv(data, path, alias=None, encoding=None, delimiter="\t", newline="\n
 
 
 def generate_empty_schema(path, name=None, version=None, author=None):
-   with open(path, "w") as f:
+   with open(path, "w", encoding="utf8") as f:
       if not name:
          name = os.path.basename(path).split(".")[0]
       if not author:
@@ -1340,7 +1345,7 @@ def update_schema_metadata(path, name=None, version=None, author=None):
    if changed:
       md["date"] = datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
 
-      with open(path, "w") as f:
+      with open(path, "w", encoding="utf8") as f:
          for mdn in ("encoding", "name", "version", "das_minimum_version", "author", "date"):
             if not mdn in md:
                continue
