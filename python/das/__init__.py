@@ -39,7 +39,7 @@ from . import schematypes
 from . import types
 
 # For backward compatibiilty
-__version__ = "2.0.0b6"
+__version__ = "2.0.0b7"
 VERSION_RE = re.compile(r"(\d+\.\d+).*")
 Das = Struct
 
