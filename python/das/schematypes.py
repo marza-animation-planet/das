@@ -1,8 +1,8 @@
 import re
 import os
+import importlib.util
 from typing import Any, Dict as TypeDict
 import das
-import imp
 
 
 class ValidationError(Exception):
@@ -1284,10 +1284,10 @@ class Class(TypeValidator):
       for i in class_name.split("."):
          if c is None:
             g = globals()
-            if not i in g:
-               # TODO: We must change imp to importlib. The imp module is deprecated in favor of importlib.(Deprecated since version 3.4)
-               # https://docs.python.org/3.10/library/imp.html
-               c = imp.load_module(i, *imp.find_module(i))
+            if i not in g:
+               spec = importlib.util.find_spec(i)
+               c = importlib.util.module_from_spec(spec)
+               spec.loader.exec_module(c)
             else:
                c = globals()[i]
          else:
